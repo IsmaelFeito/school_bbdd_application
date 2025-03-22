@@ -8,8 +8,6 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /*
  *
@@ -20,7 +18,7 @@ public class Ernesto {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws ClassNotFoundException {
+    public static void main(String[] args) {
 
 	try {
 	    //charge MariaDB's driver
@@ -30,6 +28,9 @@ public class Ernesto {
 
 	    //local:
 	    Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost/ernesto?socket=/run/mysqld/mysqld.sock", "root", "8001");
+	    Querys consulta = new Querys();
+	    
+	    consulta.makeQuerys(0);//esta mal el int de dentro de la función
 	    //create statement (sentencia)
 	    Statement stmt = connection.createStatement();
 	    //save query's text on a str (after will exe it)
@@ -52,6 +53,7 @@ public class Ernesto {
 	    System.out.println("Error: connection with Database failed");
             e.printStackTrace();
         }
+	
     }
     
 }

@@ -8,6 +8,6 @@ package ernesto;
  *
  * @author ifeito-m
  */
-public enum UserType {
-    Profesor, Alumno;
+public enum QueryType {
+    SELECT, UPDATE, DELETE, INSERT
 }
