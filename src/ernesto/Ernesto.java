@@ -27,7 +27,7 @@ public class Ernesto {
 	    Class.forName("org.mariadb.jdbc.Driver");
 	    //clase
 //	    Connection connection = DriverManager.getConnection("jdbc:mariadb://10.227.189.195:3307/alberto_isma", "root", "alumno");
-	    
+
 	    //local:
 	    Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost/ernesto?socket=/run/mysqld/mysqld.sock", "root", "8001");
 	    //create statement (sentencia)
