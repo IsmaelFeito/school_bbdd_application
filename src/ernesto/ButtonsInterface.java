@@ -4,7 +4,7 @@
  */
 package ernesto;
 
-import java.awt.event.*;
+import java.awt.*;
 import javax.swing.*;
 
 /**
@@ -12,12 +12,16 @@ import javax.swing.*;
  * @author ifeito-m
  */
 public class ButtonsInterface extends JPanel{
-    public JButton profesorButton;
-    public JButton alumnoButton;
-    public JButton salirButton;
-    public JTextField desplegable;
+    private JButton profesorButton;
+    private JButton alumnoButton;
+    private JButton salirButton;
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
 
-    public ButtonsInterface() {
+    public ButtonsInterface(CardLayout cardLayout, JPanel mainPanel) {
+        this.cardLayout = cardLayout;
+        this.mainPanel = mainPanel;
+	
 	this.profesorButton = new JButton("Profesor");
 	this.alumnoButton = new JButton("Alumno");
 	this.salirButton = new JButton("Salir");
@@ -25,39 +29,30 @@ public class ButtonsInterface extends JPanel{
 	add(this.profesorButton);
 	add(this.alumnoButton);
 	add(this.salirButton);
-    }
 	
-    public void openProfesor(){
-	   // Al hacer clic, abre una nueva ventana
-	   JFrame profesorFrame = new JFrame("Ventana Profesor");
-	   profesorFrame.setSize(400, 200); // Tamaño de la nueva ventana
-	   profesorFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	   
-	   profesorFrame.setLocationRelativeTo(null);
-	   
-	   profesorFrame.setVisible(true);
+	JPanel profesorPanel = createPanel("Ventana Profesor");
+        JPanel alumnoPanel = createPanel("Ventana Alumno");
 
-	   this.setVisible(false);//oculta la original al crear la de profe
+        // Agregar los paneles al CardLayout
+        mainPanel.add(this, "buttonsPanel");
+        mainPanel.add(profesorPanel, "profesorPanel");
+        mainPanel.add(alumnoPanel, "alumnoPanel");
+
+        profesorButton.addActionListener(e -> cardLayout.show(mainPanel, "profesorPanel"));
+        alumnoButton.addActionListener(e -> cardLayout.show(mainPanel, "alumnoPanel"));
+        salirButton.addActionListener(e -> System.exit(0));
     }
-    
-    public void openAlumno(){
-	   JFrame alumnFrame = new JFrame("Ventana Alumno");
-	   alumnFrame.setSize(400, 200);
-	   alumnFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	   
-	   alumnFrame.setLocationRelativeTo(null);
-	   
-	   alumnFrame.setVisible(true);
-	   
-	   this.setVisible(false);//oculta pestaña anterior
-    }
-    
-    public void backButton(){
+    private JPanel createPanel(String name){
+	JPanel panel = new JPanel(new BorderLayout());
 	
+	JLabel label = new JLabel(name, JLabel.CENTER);
+	JButton backButton = new JButton("<- Volver");//(go back)
+	
+	backButton.addActionListener(l -> cardLayout.show(mainPanel, "buttonsPanel"));
+	
+	panel.add(label, BorderLayout.CENTER);
+	panel.add(backButton, BorderLayout.SOUTH);
+	
+	return panel;
     }
-    
-    public void salirButton(){
-	System.exit(0);
-    }
-
 }

@@ -5,39 +5,32 @@
 package ernesto;
 
 import javax.swing.*;
-import java.awt.event.*;
+import java.awt.*;
 /**
  *
  * @author ifeito-m y albertomh
  */
 public class Interfaz extends JFrame{
-    private ButtonsInterface buttonsPanel;
-
+    private JPanel mainPanel;
+    private CardLayout cardLayout;
+    
+    
     public Interfaz() {
        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        setSize(400, 200);
-       buttonsPanel = new ButtonsInterface();
-       setContentPane(buttonsPanel);
-       
-       buttonsPanel.profesorButton.addActionListener(e -> buttonsPanel.openProfesor());
-       buttonsPanel.alumnoButton.addActionListener(e -> buttonsPanel.openAlumno());
-       
        setLocationRelativeTo(null);
+
+       cardLayout = new CardLayout();
+       mainPanel = new JPanel(cardLayout);
+
+       ButtonsInterface buttonsPanel = new ButtonsInterface(cardLayout, mainPanel);
+       mainPanel.add(buttonsPanel, "buttonsPanel");
+       
+       setContentPane(mainPanel);
+       
+       cardLayout.show(mainPanel, "buttonsPanel");
        
        setVisible(true);
-
-	
-//	       // Acción para el botón "Salir"
-//	salirButton.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//               System.exit(0);
-//            }
-//        });
     }
-    
-
-//   public static void main(String[] args) {
-//   }
 }
 
