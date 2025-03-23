@@ -8,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import javax.swing.JFrame;
 
 /*
  *
@@ -28,9 +29,13 @@ public class Ernesto {
 
 	    //local:
 	    Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost/ernesto?socket=/run/mysqld/mysqld.sock", "root", "8001");
-	    Querys consulta = new Querys();
+	    //Querys consulta = new Querys();
 	    
-	    consulta.makeQuerys(0);//esta mal el int de dentro de la función
+	//implementar interfaz tras la conexión a mariaDB    
+	    JFrame frame = new Interfaz();
+
+	    
+//	    consulta.makeQuerys(0);//esta mal el int de dentro de la función
 	    //create statement (sentencia)
 	    Statement stmt = connection.createStatement();
 	    //save query's text on a str (after will exe it)
