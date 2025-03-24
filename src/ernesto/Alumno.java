@@ -5,7 +5,11 @@
 package ernesto;
 
 import java.awt.*;
+import java.security.NoSuchAlgorithmException;
+import java.sql.*;
+import java.util.logging.*;
 import javax.swing.*;
+import java.io.*;
 
 /**
  *
@@ -13,10 +17,10 @@ import javax.swing.*;
  */
 public class Alumno extends JPanel {
     private JPanel panelAlumno;
-    private JTextField nombreField;
-    private JTextField apellidoField;
+    private JTextField nombreUsuarioField;
     private JPasswordField contrasenaField;
     private JButton backButton;
+    private JButton submitButton;
     private CardLayout cardLayout;
     private JPanel mainPanel;
     
@@ -24,13 +28,10 @@ public class Alumno extends JPanel {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
 	
-	setLayout(new GridLayout(4,2,10,10));
+	setLayout(new GridLayout(3,2,10,10));
 	
-	JLabel nombreLabel = new JLabel("Nombre: ");
-	nombreField = new JTextField(15);
-	
-	JLabel apellidoLabel = new JLabel("Apellido: ");
-	apellidoField = new JTextField(15);
+	JLabel nombreUserLabel = new JLabel("Nombre de usuario: ");
+	nombreUsuarioField = new JTextField(15);
 	
 	JLabel contrasenaLabel = new JLabel("Contraseña: ");
 	contrasenaField = new JPasswordField(15);	
@@ -38,27 +39,76 @@ public class Alumno extends JPanel {
 	backButton = new JButton("<- Volver");
 	backButton.addActionListener(e -> cardLayout.show(mainPanel, "buttonsPanel"));
 	
-        add(nombreLabel);
-        add(nombreField);
-	add(apellidoLabel);
-	add(apellidoField);
+	submitButton = new JButton("Enviar");//check on database 
+	submitButton.addActionListener(l -> {
+	    try {
+		loginAlumno();
+	    } catch (Exception ex) {
+                Logger.getLogger(Alumno.class.getName()).log(Level.SEVERE, "Error al registrar usuario", ex);
+                JOptionPane.showMessageDialog(this, "Error al registrar usuario: " + ex.getMessage());
+            }
+	});
+	
+        add(nombreUserLabel);
+        add(nombreUsuarioField);
         add(contrasenaLabel);
         add(contrasenaField);
         add(backButton);
+        add(submitButton);
 	
 	mainPanel.add(this, "alumnoPanel");
+	
+	
     }
 
-    public JPanel getPanel() {
-	return panelAlumno;
-    }
+    
+    private void loginAlumno() throws NoSuchAlgorithmException{
+	String nombreUsuario = nombreUsuarioField.getText().trim();
+	String passwd = new String(contrasenaField.getPassword());
 
-    public String getApellidoField() {
-	return apellidoField.getText();
-    }
+	if((nombreUsuario.isEmpty() || passwd.isEmpty()) || (nombreUsuario.isEmpty() && passwd.isEmpty())){
+	    JOptionPane.showMessageDialog(this, "El usuario y la contraseña no pueden estar vacíos.");
+	    return;
+	}
+	
+	try {
+	    System.out.println("contraseña str: "+passwd+ "user name str: "+nombreUsuario);
+	    Usuario user = new Usuario(nombreUsuario, passwd, "Alumno");
 
-    public String getContrasenaField() {
-	return new String(contrasenaField.getPassword());
+	    //insert query
+	    Class.forName("org.mariadb.jdbc.Driver");
+	    Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD);
+	    String checkUsuario = "SELECT COUNT(*) FROM usuarios WHERE nombre = ?";
+	  
+	    try (PreparedStatement checkStmt = connection.prepareStatement(checkUsuario)){
+		checkStmt.setString(1, user.getNombreUsuario());
+		ResultSet rs = checkStmt.executeQuery();
+		
+		if(rs.next() && rs.getInt(1) > 0){
+		    String contrasena = rs.getString("contrasena");
+		    try{
+			if(contrasena.equals(Usuario.md5(passwd))){
+			    JOptionPane.showMessageDialog(this, "inicio exitoso");
+			    Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: ");
+			}else{
+			    JOptionPane.showMessageDialog(this, "contraseña incorrecta");
+			    Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: ");			
+			}
+		    }catch (NoSuchAlgorithmException e){
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Error al encriptar la contraseña");		    
+		    }
+		}else{
+		    JOptionPane.showMessageDialog(this, "Usuario no encontrado");
+		    Usuario.registrarEnFichero(nombreUsuario, "Fallo en login - Usuario no encontrado");		    
+		}
+	    }
+	}catch (SQLException e) {
+	    e.printStackTrace();
+	    JOptionPane.showMessageDialog(this, "Error en la base de datos");
+	} catch (ClassNotFoundException ex) {
+	    Logger.getLogger(Alumno.class.getName()).log(Level.SEVERE, null, ex);
+	}
     }
     
 }

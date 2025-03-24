@@ -29,7 +29,7 @@ public class Interfaz extends JFrame{
        
        cardLayout.show(mainPanel, "buttonsPanel");
        setVisible(true);
-              
+       
     }
 }
 

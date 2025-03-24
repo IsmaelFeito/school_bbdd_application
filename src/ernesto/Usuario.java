@@ -4,73 +4,82 @@
  */
 package ernesto;
 
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import javax.swing.*;
+
 
 /**
  *
  * @author ifeito-m
  */
 public class Usuario {
-    private int	    UsuarioID = 0;
-    private String  NombreUsuario;
-    private String  Contra;
-    private UserType  TipoUsuario;
-
+    private int	    usuarioID = 0;
+    private String  nombreUsuario;
+    private String  contra;
+    private String  tipoUsuario;
+    private int	    contraOriginal;
+    
     public Usuario(){}
     
-    public Usuario(String NombreUsuario, UserType TipoUsuario) throws NoSuchAlgorithmException {
-	this.NombreUsuario = NombreUsuario;
-	this.TipoUsuario = TipoUsuario;//enlazarlo con un boton de eleccion para guararlo directamne
-	this.Contra = generatePasswd();
+    public Usuario(String nombreUsuario, String contra, String tipoUsuario) throws NoSuchAlgorithmException {
+        this.nombreUsuario = nombreUsuario;
+        this.contra = md5(contra);
+        this.tipoUsuario = tipoUsuario;
+    }
+    
+    public Usuario(String NombreUsuario, String TipoUsuario) throws NoSuchAlgorithmException {
+	this.nombreUsuario = NombreUsuario;
+	this.tipoUsuario = TipoUsuario;//enlazarlo con un boton de eleccion para guararlo directamne
+	this.contra = generatePasswd();
     }
 
     public int getUsuarioID() {
-	return UsuarioID;
+	return usuarioID;
     }
 
     public void setUsuarioID(int UsuarioID) {
-	this.UsuarioID = UsuarioID;
+	this.usuarioID = UsuarioID;
     }
     
     public String getNombreUsuario() {
-	return NombreUsuario;
+	return nombreUsuario;
     }
 
     public void setNombreUsuario(String NombreUsuario) {
-	this.NombreUsuario = NombreUsuario;
+	this.nombreUsuario = NombreUsuario;
     }
 
     public String getContra() {
-	return Contra;
+	return contra;
     }
 
     public void setContra(int Contra) throws NoSuchAlgorithmException {
-	this.Contra = changePasswd(Contra);
+	this.contra = changePasswd(Contra);
     }
 
     public String getTipoUsuario() {
-	return TipoUsuario.toString();
+	return tipoUsuario.toString();
     }
 
-    public void setTipoUsuario(UserType TipoUsuario) {
-	this.TipoUsuario = TipoUsuario;
+    public void setTipoUsuario(String TipoUsuario) {
+	this.tipoUsuario = TipoUsuario;
     }
 
     private String  generatePasswd() throws NoSuchAlgorithmException{
 	int passwd = (int)(Math.random()*10000);// 99999 - 0;
-	String hash = dm5(String.valueOf(passwd));//enviar contra cuando se establece a un fd
+	String hash = md5(String.valueOf(passwd));//enviar contra cuando se establece a un fd
 	return hash;
     }
     
     private String  changePasswd(int passwd) throws NoSuchAlgorithmException{
-	String hash = dm5(String.valueOf(passwd));//enviar contra cuando se cambia a un fd
+	String hash = md5(String.valueOf(passwd));//enviar contra cuando se cambia a un fd
 	return hash;
     }
     
     //aplicar condición de la contraseña (podemos ponerlo en esta funcion la redirección al fd)
-    private String dm5(String passwd) throws NoSuchAlgorithmException{
+    public static String md5(String passwd) throws NoSuchAlgorithmException{
 	try{
 	    //genera los hases segun un algoritmo/manera de aplicarlo
 	    MessageDigest algorithm = MessageDigest.getInstance("MD5");
@@ -81,7 +90,7 @@ public class Usuario {
 	    StringBuilder str = new StringBuilder();
 	    //for each para guardar cada codificar cada nbr 1x1 con el algoritmo
 	    for (byte c : b){
-		str.append(String.format("%05x", b));//2digitos por numero
+		str.append(String.format("%02x", b));//2digitos por numero
 	    }
 	    
 	    return str.toString();//casteo a cadena simle
@@ -90,4 +99,12 @@ public class Usuario {
 	}
 	
     }
+    
+    public static void registrarEnFichero(String usuario, String mensaje) {
+    try (FileWriter writer = new FileWriter("login.log", true)) {
+        writer.write(usuario + " - " + mensaje + "\n");
+    } catch (IOException e) {
+        System.err.println("Error al escribir en el archivo de log: " + e.getMessage());
+    }
+}
 }

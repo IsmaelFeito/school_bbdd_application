@@ -41,7 +41,8 @@ public class Ernesto {
 //	    printear tablas
 	    System.out.println("CicloID  - Ciclos");
 	    while (rs.next()){
-		System.out.println(rs.getString("CicloID")+"        - "+rs.getString("NombreCiclo"));
+		System.out.println(rs.getString("CicloID")+"        - "
+			+rs.getString("NombreCiclo"));
 	    }
 	    
 	    rs.close();
