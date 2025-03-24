@@ -3,11 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
 package ernesto;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import javax.swing.JFrame;
 
 /*
@@ -42,7 +38,7 @@ public class Ernesto {
 	    String query = "SELECT * FROM Ciclos";
             ResultSet rs = stmt.executeQuery(query);
 	    
-	    
+//	    printear tablas
 	    System.out.println("CicloID  - Ciclos");
 	    while (rs.next()){
 		System.out.println(rs.getString("CicloID")+"        - "+rs.getString("NombreCiclo"));

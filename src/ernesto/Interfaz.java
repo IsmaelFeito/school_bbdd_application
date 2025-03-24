@@ -14,7 +14,6 @@ public class Interfaz extends JFrame{
     private JPanel mainPanel;
     private CardLayout cardLayout;
     
-    
     public Interfaz() {
        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        setSize(400, 200);
@@ -29,8 +28,8 @@ public class Interfaz extends JFrame{
        setContentPane(mainPanel);
        
        cardLayout.show(mainPanel, "buttonsPanel");
-       
        setVisible(true);
+              
     }
 }
 

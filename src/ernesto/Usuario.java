@@ -6,6 +6,7 @@ package ernesto;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import javax.swing.*;
 
 /**
  *
@@ -17,6 +18,8 @@ public class Usuario {
     private String  Contra;
     private UserType  TipoUsuario;
 
+    public Usuario(){}
+    
     public Usuario(String NombreUsuario, UserType TipoUsuario) throws NoSuchAlgorithmException {
 	this.NombreUsuario = NombreUsuario;
 	this.TipoUsuario = TipoUsuario;//enlazarlo con un boton de eleccion para guararlo directamne

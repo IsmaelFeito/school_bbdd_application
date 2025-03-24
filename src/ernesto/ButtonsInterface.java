@@ -19,8 +19,7 @@ public class ButtonsInterface extends JPanel{
     private JPanel mainPanel;
 
     public ButtonsInterface(CardLayout cardLayout, JPanel mainPanel) {
-        this.cardLayout = cardLayout;
-        this.mainPanel = mainPanel;
+        setLayout(new FlowLayout());
 	
 	this.profesorButton = new JButton("Profesor");
 	this.alumnoButton = new JButton("Alumno");
@@ -30,17 +29,18 @@ public class ButtonsInterface extends JPanel{
 	add(this.alumnoButton);
 	add(this.salirButton);
 	
+	mainPanel.add(this, "buttonsPanel");
+	
 	JPanel profesorPanel = createPanel("Ventana Profesor");
-        JPanel alumnoPanel = createPanel("Ventana Alumno");
-
-        // Agregar los paneles al CardLayout
-        mainPanel.add(this, "buttonsPanel");
-        mainPanel.add(profesorPanel, "profesorPanel");
-        mainPanel.add(alumnoPanel, "alumnoPanel");
+        Alumno alumnoPanel = new Alumno(cardLayout, mainPanel);
 
         profesorButton.addActionListener(e -> cardLayout.show(mainPanel, "profesorPanel"));
         alumnoButton.addActionListener(e -> cardLayout.show(mainPanel, "alumnoPanel"));
         salirButton.addActionListener(e -> System.exit(0));
+	
+        mainPanel.add(profesorPanel, "profesorPanel");
+        mainPanel.add(this, "buttonsPanel");
+	
     }
     private JPanel createPanel(String name){
 	JPanel panel = new JPanel(new BorderLayout());
