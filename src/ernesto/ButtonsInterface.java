@@ -19,6 +19,9 @@ public class ButtonsInterface extends JPanel{
     private JPanel mainPanel;
 
     public ButtonsInterface(CardLayout cardLayout, JPanel mainPanel) {
+        this.cardLayout = cardLayout;
+	this.mainPanel = mainPanel;
+	
         setLayout(new FlowLayout());
 	
 	this.profesorButton = new JButton("Profesor");

@@ -24,7 +24,7 @@ public class Alumno extends JPanel {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
 	
-	setLayout(new GridLayout(3,2,10,10));
+	setLayout(new GridLayout(4,2,10,10));
 	
 	JLabel nombreLabel = new JLabel("Nombre: ");
 	nombreField = new JTextField(15);
