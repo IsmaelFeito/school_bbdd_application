@@ -31,10 +31,13 @@ public class Alumno extends JPanel {
 	setLayout(new GridBagLayout());
 	GridBagConstraints gbc = new GridBagConstraints();
 	gbc.insets = new Insets(10, 10, 10, 10);
+
 	
-	JLabel nombreUserLabel = new JLabel("Nombre de usuario: ");
+	JLabel nombreUsuarioLabel = new JLabel("Nombre de usuario: ");
+	nombreUsuarioLabel.setForeground(Color.BLACK);
+        nombreUsuarioLabel.setOpaque(true);
         gbc.gridx = 0; gbc.gridy = 0; 
-	add(nombreUserLabel, gbc);
+	add(nombreUsuarioLabel, gbc);
 	
 	nombreUsuarioField = new JTextField(15);
 	gbc.gridx = 1; gbc.gridy = 0; 
@@ -70,7 +73,7 @@ public class Alumno extends JPanel {
 	gbc.gridx = 2; gbc.gridy = 2;
         add(submitButton, gbc);
 	
-	mainPanel.add(this, "alumnoPanel");
+	mainPanel.add(this, "AlumnoPanel");
 	
 	RegistrarUser panelRegistro = new RegistrarUser(cardLayout, mainPanel, "Alumno");
 	mainPanel.add(panelRegistro, "registrarUser");

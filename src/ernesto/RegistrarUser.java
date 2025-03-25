@@ -46,31 +46,58 @@ public class RegistrarUser extends JPanel{
 	gbc.gridx = 1; gbc.gridy = 1;
 	add(apellidoField, gbc);
 	
-//	JLabel nombreUsuarioLabel = new JLabel("Nombre de usuario: ");
-//	gbc.gridx = 0; gbc.gridy = 2;
-//	add(nombreUsuarioLabel, gbc);
-//	nombreUsuarioField = new JPasswordField(15);
-//	gbc.gridx = 1; gbc.gridy = 2;
-//	add(apellidoField, gbc);
+	String userTypeTemp;
+	if (userType.equalsIgnoreCase("Alumno"))
+	    userTypeTemp = "Alumno";
+	else 
+	    userTypeTemp = new String("Profesor");
+	String backPanel = new String(userTypeTemp+"Panel");
 	
 	backButton = new JButton("<- Volver");
-	backButton.addActionListener(e -> cardLayout.show(mainPanel, "buttonsPanel"));
-	gbc.gridx = 0; gbc.gridy = 3;
-	add(nombreLabel, gbc);
+	backButton.addActionListener(e -> cardLayout.show(mainPanel, backPanel));
+	gbc.gridx = 0; gbc.gridy = 2;
+	add(backButton, gbc);
 	
 	submitButton = new JButton("Enviar");//check on database 
 	submitButton.addActionListener(l -> {
-	    registroLogin();
+	    registroLogin(userType);
 	});
-	gbc.gridx = 1; gbc.gridy = 3;
+	gbc.gridx = 1; gbc.gridy = 2;
 	add(submitButton, gbc);
     }
     
-	private void registroLogin(){
+	private void registroLogin(String userType){
 	    String nombre = nombreField.getText().trim();
 	    String apellido = apellidoField.getText().trim();
-//	    String nombreUsuario = nombreUsuarioField.getText().trim();
-	    //str tipoUsuario
+	    try {
+		String nombreUsuario = new String (nombre.toLowerCase() + apellido.toLowerCase());
+		
+		Class.forName("org.mariadb.jdbc.Driver");
+		Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD);
+		String checkUsuario = "SELECT COUNT(*) FROM Usuarios WHERE nombreUsuario = ?";
+		try (PreparedStatement checkStmt = connection.prepareStatement(checkUsuario)){
+		    checkStmt.setString(1, nombreUsuario);
+		    ResultSet rs = checkStmt.executeQuery();
+		    if (!rs.next() || rs.getInt(1) <=1){
+			String addUser = "INSERT INTO Usuarios (nombre, contrasena, tipo) VALUES (?, ?, ?)";;
+			
+			String contra = Usuario.generatePasswd();
+			try (PreparedStatement checkStmt1 = connection.prepareStatement(addUser)){
+			    checkStmt1.setString(1, nombreUsuario);
+			    checkStmt1.setString(2, contra);
+			    checkStmt1.setString(3, userType);
+			    checkStmt1.executeUpdate();
+			    JOptionPane.showMessageDialog(this, "Usuario registrado con éxito");
+			}
+		    }
+		    while (rs.next()){
+		    }
+			
+		}
+	    }catch(Exception e){
+		System.out.println("Error al guardar los datos del usuario/");
+		e.printStackTrace();
+	    }
 	    if((nombre.isEmpty() || apellido.isEmpty()) || (nombre.isEmpty() && apellido.isEmpty())){
 		JOptionPane.showMessageDialog(this, "El usuario y la apellido no pueden estar vacíos.");
 		return;
@@ -85,8 +112,8 @@ public class RegistrarUser extends JPanel{
 //	    } catch (SQLException e) {
 //		e.printStackTrace();
 //		JOptionPane.showMessageDialog(this, "Error en la base de datos");
-
-	    }
+//
+//	    }
 	}
 
 }

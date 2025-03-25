@@ -22,13 +22,17 @@ public class Interfaz extends JFrame{
        cardLayout = new CardLayout();
        mainPanel = new JPanel(cardLayout);
 
-       ButtonsInterface buttonsPanel = new ButtonsInterface(cardLayout, mainPanel);
-       mainPanel.add(buttonsPanel, "buttonsPanel");
+	ButtonsInterface buttonsPanel = new ButtonsInterface(cardLayout, mainPanel);
+	Profesor profesorPanel = new Profesor(cardLayout, mainPanel);
+	Alumno alumnoPanel = new Alumno(cardLayout, mainPanel);
+
+	mainPanel.add(buttonsPanel, "buttonsPanel");
+	mainPanel.add(alumnoPanel, "AlumnoPanel");
+	mainPanel.add(profesorPanel, "ProfesorPanel");
        
-       setContentPane(mainPanel);
-       
-       cardLayout.show(mainPanel, "buttonsPanel");
-       setVisible(true);
+	setContentPane(mainPanel);
+	cardLayout.show(mainPanel, "buttonsPanel");
+	setVisible(true);
        
     }
 }

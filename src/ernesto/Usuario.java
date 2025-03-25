@@ -67,7 +67,7 @@ public class Usuario {
 	this.tipoUsuario = TipoUsuario;
     }
 
-    private String  generatePasswd() throws NoSuchAlgorithmException{
+    public static String  generatePasswd() throws NoSuchAlgorithmException{
 	int passwd = (int)(Math.random()*10000);// 99999 - 0;
 	String hash = md5(String.valueOf(passwd));//enviar contra cuando se establece a un fd
 	return hash;
