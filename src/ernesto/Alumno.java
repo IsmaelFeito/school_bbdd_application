@@ -16,11 +16,11 @@ import java.io.*;
  * @author ifeito-m
  */
 public class Alumno extends JPanel {
-    private JPanel panelAlumno;
     private JTextField nombreUsuarioField;
     private JPasswordField contrasenaField;
     private JButton backButton;
     private JButton submitButton;
+    private JButton registroButton;
     private CardLayout cardLayout;
     private JPanel mainPanel;
     
@@ -28,16 +28,35 @@ public class Alumno extends JPanel {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
 	
-	setLayout(new GridLayout(3,2,10,10));
+	setLayout(new GridBagLayout());
+	GridBagConstraints gbc = new GridBagConstraints();
+	gbc.insets = new Insets(10, 10, 10, 10);
 	
 	JLabel nombreUserLabel = new JLabel("Nombre de usuario: ");
+        gbc.gridx = 0; gbc.gridy = 0; 
+	add(nombreUserLabel, gbc);
+	
 	nombreUsuarioField = new JTextField(15);
+	gbc.gridx = 1; gbc.gridy = 0; 
+        add(nombreUsuarioField, gbc);
 	
 	JLabel contrasenaLabel = new JLabel("Contraseña: ");
+	gbc.gridx = 0; gbc.gridy = 1; 
+        add(contrasenaLabel, gbc);
+
 	contrasenaField = new JPasswordField(15);	
+        gbc.gridx = 1; gbc.gridy = 1;
+        add(contrasenaField, gbc);
 	
 	backButton = new JButton("<- Volver");
 	backButton.addActionListener(e -> cardLayout.show(mainPanel, "buttonsPanel"));
+	gbc.gridx = 0; gbc.gridy = 2; 
+	add(backButton, gbc);
+	
+	registroButton = new JButton("Registrarse");
+	registroButton.addActionListener(e -> cardLayout.show(mainPanel, "registrarUser"));
+	gbc.gridx = 1; gbc.gridy = 2; 
+	add(registroButton, gbc);
 	
 	submitButton = new JButton("Enviar");//check on database 
 	submitButton.addActionListener(l -> {
@@ -45,20 +64,16 @@ public class Alumno extends JPanel {
 		loginAlumno();
 	    } catch (Exception ex) {
                 Logger.getLogger(Alumno.class.getName()).log(Level.SEVERE, "Error al registrar usuario", ex);
-                JOptionPane.showMessageDialog(this, "Error al registrar usuario: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Error al registrar usuario: "+ nombreUsuarioField.getText());
             }
 	});
-	
-        add(nombreUserLabel);
-        add(nombreUsuarioField);
-        add(contrasenaLabel);
-        add(contrasenaField);
-        add(backButton);
-        add(submitButton);
+	gbc.gridx = 2; gbc.gridy = 2;
+        add(submitButton, gbc);
 	
 	mainPanel.add(this, "alumnoPanel");
 	
-	
+	RegistrarUser panelRegistro = new RegistrarUser(cardLayout, mainPanel, "Alumno");
+	mainPanel.add(panelRegistro, "registrarUser");
     }
 
     

@@ -16,7 +16,7 @@ public class Interfaz extends JFrame{
     
     public Interfaz() {
        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-       setSize(400, 200);
+       setSize(500, 300);
        setLocationRelativeTo(null);
 
        cardLayout = new CardLayout();
