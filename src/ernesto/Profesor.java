@@ -1,11 +1,19 @@
 package ernesto;
 
 import java.awt.*;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 public class Profesor extends JPanel {
 
-    private JTextField nombreField;
+    private JTextField nombreUsuarioField;
     private JPasswordField contrasenaField;
     private JButton backButton;
     private JButton submitButton;
@@ -28,9 +36,9 @@ public class Profesor extends JPanel {
 	gbc.gridx = 0; gbc.gridy = 0;
 	add(nombreLabel, gbc);
         
-	nombreField = new JTextField(15);
+	nombreUsuarioField = new JTextField(15);
 	gbc.gridx = 1; gbc.gridy = 0;
-	add(nombreField, gbc);
+	add(nombreUsuarioField, gbc);
 	//Contraseña
         JLabel contrasenaLabel = new JLabel("Contraseña: ");
         contrasenaLabel.setForeground(Color.BLACK);
@@ -60,15 +68,68 @@ public class Profesor extends JPanel {
         submitButton = new JButton("Acceder ->");
         submitButton.setBackground(new Color(121, 213, 57));
         submitButton.setForeground(Color.WHITE);
-        submitButton.addActionListener(e -> cardLayout.show(mainPanel, "buttonsPanel"));
+        submitButton.addActionListener(e -> {
+	    try {
+		loginProfesor();
+	    } catch (NoSuchAlgorithmException ex) {
+		Logger.getLogger(Profesor.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Error al registrar usuario: "+ nombreUsuarioField.getText());
+	    }
+	});
         gbc.gridx = 2; gbc.gridy = 2;
 	add(submitButton, gbc);
 
-        // Añadir este panel al mainPanel con la clave "profesorPanel"
-        mainPanel.add(this, "ProfesorPanel");
-
     }
+		
+    private void loginProfesor() throws NoSuchAlgorithmException{
+	String nombreUsuario = nombreUsuarioField.getText().trim();
+	String passwd = new String(contrasenaField.getPassword());
 
+	if((nombreUsuario.isEmpty() || passwd.isEmpty()) || (nombreUsuario.isEmpty() && passwd.isEmpty())){
+	    JOptionPane.showMessageDialog(this, "El usuario y la contraseña no pueden estar vacíos.");
+	    return;
+	}
+	
+	try {
+	    System.out.println("contraseña str: "+passwd+ "user name str: "+nombreUsuario);
+	    Usuario user = new Usuario(nombreUsuario, passwd, "Alumno");
+
+	    //insert query
+	    Class.forName("org.mariadb.jdbc.Driver");
+	    Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD);
+	    String checkUsuario = "SELECT COUNT(*) FROM usuarios WHERE nombre = ? AND TipoUsuario = 'Profesor'";
+	  
+	    try (PreparedStatement checkStmt = connection.prepareStatement(checkUsuario)){
+		checkStmt.setString(1, user.getNombreUsuario());
+		ResultSet rs = checkStmt.executeQuery();
+		
+		if(rs.next() && rs.getInt(1) > 0){
+		    String contrasena = rs.getString("contrasena");
+		    try{
+			if(contrasena.equals(Usuario.md5(passwd))){
+			    JOptionPane.showMessageDialog(this, "inicio exitoso");
+			    Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: " + nombreUsuario);
+			    cardLayout.show(mainPanel, "CorrerProfe");
+			}else{
+			    JOptionPane.showMessageDialog(this, "contraseña incorrecta");
+			    Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: " + nombreUsuario);
+			}
+		    }catch (NoSuchAlgorithmException e){
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Error al encriptar la contraseña");		    
+		    }
+		}else{
+		    JOptionPane.showMessageDialog(this, "Usuario no encontrado");
+		    Usuario.registrarEnFichero(nombreUsuario, "Fallo en login - Usuario no encontrado");		    
+		}
+	    }
+	}catch (SQLException e) {
+	    e.printStackTrace();
+	    JOptionPane.showMessageDialog(this, "Error en la base de datos");
+	} catch (ClassNotFoundException ex) {
+	    Logger.getLogger(Alumno.class.getName()).log(Level.SEVERE, null, ex);
+	}
+    }
     public String getContrasenaField() {
         return new String(contrasenaField.getPassword());
     }

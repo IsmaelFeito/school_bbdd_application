@@ -14,7 +14,7 @@ public class Interfaz extends JFrame{
     private JPanel mainPanel;
     private CardLayout cardLayout;
     
-    public Interfaz() {
+    public Interfaz() throws ClassNotFoundException {
        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
        setSize(500, 300);
        setLocationRelativeTo(null);
@@ -25,11 +25,15 @@ public class Interfaz extends JFrame{
 	ButtonsInterface buttonsPanel = new ButtonsInterface(cardLayout, mainPanel);
 	Profesor profesorPanel = new Profesor(cardLayout, mainPanel);
 	Alumno alumnoPanel = new Alumno(cardLayout, mainPanel);
-
+	ProfesorIniciado correrProfe = new ProfesorIniciado(cardLayout, mainPanel);
+	AlumnoIniciado correrAlumno = new AlumnoIniciado(cardLayout, mainPanel);
+	
 	mainPanel.add(buttonsPanel, "buttonsPanel");
 	mainPanel.add(alumnoPanel, "AlumnoPanel");
 	mainPanel.add(profesorPanel, "ProfesorPanel");
-       
+	mainPanel.add(correrProfe, "CorrerProfe");
+	mainPanel.add(correrAlumno, "CorrerAlumno");
+	
 	setContentPane(mainPanel);
 	cardLayout.show(mainPanel, "buttonsPanel");
 	setVisible(true);
