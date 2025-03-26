@@ -2,13 +2,8 @@ package ernesto;
 
 import java.awt.*;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.sql.*;
+import java.util.logging.*;
 import javax.swing.*;
 
 public class Profesor extends JPanel {
@@ -60,6 +55,7 @@ public class Profesor extends JPanel {
 
 	// registrar user
 	registroButton = new JButton("Registrarse");
+	mainPanel.add(new RegistrarUser(cardLayout, mainPanel));
 	registroButton.addActionListener(e -> cardLayout.show(mainPanel, "registrarUser"));
 	gbc.gridx = 1; gbc.gridy = 2; 
 	add(registroButton, gbc);
@@ -92,19 +88,19 @@ public class Profesor extends JPanel {
 	
 	try {
 	    System.out.println("contraseña str: "+passwd+ "user name str: "+nombreUsuario);
-	    Usuario user = new Usuario(nombreUsuario, passwd, "Alumno");
+	    Usuario user = new Usuario(nombreUsuario, passwd, "Profesor");
 
 	    //insert query
 	    Class.forName("org.mariadb.jdbc.Driver");
 	    Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD);
-	    String checkUsuario = "SELECT COUNT(*) FROM usuarios WHERE nombre = ? AND TipoUsuario = 'Profesor'";
+	    String checkUsuario = "SELECT COUNT(*) FROM Usuarios WHERE NombreUsuario = ? AND TipoUsuario = Profesor";
 	  
 	    try (PreparedStatement checkStmt = connection.prepareStatement(checkUsuario)){
 		checkStmt.setString(1, user.getNombreUsuario());
 		ResultSet rs = checkStmt.executeQuery();
 		
 		if(rs.next() && rs.getInt(1) > 0){
-		    String contrasena = rs.getString("contrasena");
+		    String contrasena = rs.getString("ContrasenaHash");
 		    try{
 			if(contrasena.equals(Usuario.md5(passwd))){
 			    JOptionPane.showMessageDialog(this, "inicio exitoso");
@@ -133,7 +129,5 @@ public class Profesor extends JPanel {
 	    Logger.getLogger(Alumno.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
-    public String getContrasenaField() {
-        return new String(contrasenaField.getPassword());
-    }
+
 }

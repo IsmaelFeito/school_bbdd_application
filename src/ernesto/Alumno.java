@@ -74,7 +74,7 @@ public class Alumno extends JPanel {
 	
 	mainPanel.add(this, "AlumnoPanel");
 	
-	RegistrarUser panelRegistro = new RegistrarUser(cardLayout, mainPanel, "Alumno");
+	RegistrarUser panelRegistro = new RegistrarUser(cardLayout, mainPanel);
 	mainPanel.add(panelRegistro, "registrarUser");
     }
 

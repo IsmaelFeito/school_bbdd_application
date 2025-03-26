@@ -7,15 +7,12 @@ package ernesto;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import javax.swing.*;
-
 
 /**
  *
  * @author ifeito-m
  */
 public class Usuario {
-    private int	    usuarioID = 0;
     private String  nombreUsuario;
     private String  contra;
     private String  tipoUsuario;
@@ -36,14 +33,6 @@ public class Usuario {
 	this.contra = generatePasswd();
     }
 
-    public int getUsuarioID() {
-	return usuarioID;
-    }
-
-    public void setUsuarioID(int UsuarioID) {
-	this.usuarioID = UsuarioID;
-    }
-    
     public String getNombreUsuario() {
 	return nombreUsuario;
     }
@@ -84,21 +73,22 @@ public class Usuario {
 	try{
 	    //genera los hases segun un algoritmo/manera de aplicarlo
 	    MessageDigest algorithm = MessageDigest.getInstance("MD5");
-	    algorithm.update(passwd.getBytes());
-	    //mas manejable para codificar en este caso
-	    //(se puede sobreescribir facil y sin tamaño fijo)
-	    byte[] b = algorithm.digest();
-	    StringBuilder str = new StringBuilder();
-	    //for each para guardar cada codificar cada nbr 1x1 con el algoritmo
-	    for (byte c : b){
-		str.append(String.format("%02x", b));//2digitos por numero
-	    }
+
+	    byte[] digest = algorithm.digest(passwd.getBytes());
 	    
-	    return str.toString();//casteo a cadena simle
+	    return bytesToHex(digest);//casteo a cadena simle
 	}catch (NoSuchAlgorithmException e){
 	    throw new RuntimeException("Error con el algoritmo de encriptado (DM5)");
 	}
 	
+    }
+    
+    public static String bytesToHex(byte[] bytes) {
+	StringBuilder hexString = new StringBuilder();
+	for (byte b : bytes) {
+	    hexString.append(String.format("%02x", b)); // Convierte cada byte en dos caracteres hexadecimales
+	}
+	return hexString.toString();
     }
     
     public static void registrarEnFichero(String usuario, String mensaje) {
