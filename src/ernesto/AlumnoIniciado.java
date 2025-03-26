@@ -4,10 +4,17 @@
  */
 package ernesto;
 
+import java.awt.*;
+import javax.swing.*;
+
 /**
  *
  * @author ifeito-m
  */
-public class AlumnoIniciado {
+public class AlumnoIniciado extends JPanel{
+
+    public AlumnoIniciado(CardLayout cardLayout, JPanel mainPanel) {
+	
+    }
     
 }

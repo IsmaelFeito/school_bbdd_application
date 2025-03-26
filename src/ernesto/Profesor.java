@@ -109,6 +109,9 @@ public class Profesor extends JPanel {
 			if(contrasena.equals(Usuario.md5(passwd))){
 			    JOptionPane.showMessageDialog(this, "inicio exitoso");
 			    Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: " + nombreUsuario);
+			    
+			    ProfesorIniciado correrProfe = new ProfesorIniciado(cardLayout, mainPanel, "CorrerProfesor");
+			    mainPanel.add(correrProfe, "CorrerProfe");
 			    cardLayout.show(mainPanel, "CorrerProfe");
 			}else{
 			    JOptionPane.showMessageDialog(this, "contraseña incorrecta");

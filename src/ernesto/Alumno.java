@@ -9,7 +9,6 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.logging.*;
 import javax.swing.*;
-import java.io.*;
 
 /**
  *
@@ -96,7 +95,7 @@ public class Alumno extends JPanel {
 	    //insert query
 	    Class.forName("org.mariadb.jdbc.Driver");
 	    Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD);
-	    String checkUsuario = "SELECT COUNT(*) FROM usuarios WHERE nombre = ?";
+	    String checkUsuario = "SELECT COUNT(*) FROM usuarios WHERE nombre = ? AND TipoUsuario = 'Profesor'";
 	  
 	    try (PreparedStatement checkStmt = connection.prepareStatement(checkUsuario)){
 		checkStmt.setString(1, user.getNombreUsuario());
@@ -108,6 +107,9 @@ public class Alumno extends JPanel {
 			if(contrasena.equals(Usuario.md5(passwd))){
 			    JOptionPane.showMessageDialog(this, "inicio exitoso");
 			    Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: ");
+			    AlumnoIniciado correrAlumno = new AlumnoIniciado(cardLayout, mainPanel);
+			    mainPanel.add(correrAlumno, "CorrerAlumno");
+			    cardLayout.show(mainPanel, "CorrerAlumno");
 			}else{
 			    JOptionPane.showMessageDialog(this, "contraseña incorrecta");
 			    Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: ");			

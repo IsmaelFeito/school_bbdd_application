@@ -19,13 +19,14 @@ public class Usuario {
     private String  nombreUsuario;
     private String  contra;
     private String  tipoUsuario;
-    private int	    contraOriginal;
+    private String  contraOriginal;
     
     public Usuario(){}
     
     public Usuario(String nombreUsuario, String contra, String tipoUsuario) throws NoSuchAlgorithmException {
         this.nombreUsuario = nombreUsuario;
-        this.contra = md5(contra);
+        this.contraOriginal = generatePasswd();
+        this.contra = md5(contraOriginal);
         this.tipoUsuario = tipoUsuario;
     }
     
@@ -67,10 +68,10 @@ public class Usuario {
 	this.tipoUsuario = TipoUsuario;
     }
 
-    public static String  generatePasswd() throws NoSuchAlgorithmException{
+    public static String  generatePasswd(){
 	int passwd = (int)(Math.random()*10000);// 99999 - 0;
-	String hash = md5(String.valueOf(passwd));//enviar contra cuando se establece a un fd
-	return hash;
+	String text = String.valueOf(passwd);//enviar contra cuando se establece a un fd
+	return text;
     }
     
     private String  changePasswd(int passwd) throws NoSuchAlgorithmException{
@@ -101,10 +102,18 @@ public class Usuario {
     }
     
     public static void registrarEnFichero(String usuario, String mensaje) {
-    try (FileWriter writer = new FileWriter("login.log", true)) {
-        writer.write(usuario + " - " + mensaje + "\n");
-    } catch (IOException e) {
-        System.err.println("Error al escribir en el archivo de log: " + e.getMessage());
+    try {
+        // Obtener la ruta del escritorio
+        String desktopPath = System.getProperty("user.home") + "/Desktop/login.log";  
+
+	// Escribir en el archivo
+        FileWriter writer = new FileWriter(desktopPath, true);
+        writer.write(mensaje + " - " + usuario + "\n");
+        writer.close();
+	} catch (IOException e) {
+	    System.err.println("Error al escribir en el archivo de log: " + e.getMessage());
+	}
     }
+
 }
-}
+
