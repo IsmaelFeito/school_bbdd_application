@@ -5,7 +5,7 @@
 package ernesto;
 import javax.swing.JFrame;
 
-/*joseangel1 -> 20
+/*josejose1 -> 4331
  *
  * @author ifeito-m
  */

@@ -13,7 +13,7 @@ import javax.swing.*;
  */
 public class AlumnoIniciado extends JPanel{
 
-    public AlumnoIniciado(CardLayout cardLayout, JPanel mainPanel) {
+    public AlumnoIniciado(CardLayout cardLayout, JPanel mainPanel, String nombreUsuario) {
 	
     }
     

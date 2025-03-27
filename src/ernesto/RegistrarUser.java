@@ -186,25 +186,39 @@ public class RegistrarUser extends JPanel {
 		    String insertTipoUsuario = "";
 		    if (userType.equalsIgnoreCase("Alumno")) {
 			insertTipoUsuario = "INSERT INTO Alumnos (Nombre, Apellidos, Edad, FechaMatricula, UsuarioID) VALUES (?, ?, ?, ?, ?)";
-		    }
-		    try (PreparedStatement stmtAlumno = connection.prepareStatement(insertTipoUsuario)) {
-			stmtAlumno.setString(1, nombre);
-			stmtAlumno.setString(2, apellido);
-			stmtAlumno.setInt(3, edad);
-			stmtAlumno.setDate(4, java.sql.Date.valueOf(LocalDate.now()));
-			stmtAlumno.setInt(5, userId);
-			stmtAlumno.executeUpdate();
-		    } catch (Exception e) {
-			// Si falla la inserción en Alumnos, se elimina el usuario insertado previamente
-			try (PreparedStatement delUser = connection.prepareStatement("DELETE FROM Usuarios WHERE NombreUsuario = ?")) {
-			    delUser.setString(1, nombreUsuario);
-			    delUser.executeUpdate();
-			} catch (SQLException ex) {
-			    ex.printStackTrace();
+			try (PreparedStatement stmtAlumno = connection.prepareStatement(insertTipoUsuario)) {
+			    stmtAlumno.setString(1, nombre);
+			    stmtAlumno.setString(2, apellido);
+			    stmtAlumno.setInt(3, edad);
+			    stmtAlumno.setDate(4, java.sql.Date.valueOf(LocalDate.now()));
+			    stmtAlumno.setInt(5, userId);
+			    stmtAlumno.executeUpdate();
+			} catch (Exception e) {
+			    // Si falla la inserción en Alumnos, se elimina el usuario insertado previamente
+			    try (PreparedStatement delUser = connection.prepareStatement("DELETE FROM Usuarios WHERE NombreUsuario = ?")) {
+				delUser.setString(1, nombreUsuario);
+				delUser.executeUpdate();
+			    } catch (SQLException ex) {
+				ex.printStackTrace();
+			    }
+			}
+		    } else if (userType.equalsIgnoreCase("Profesor")) {
+			insertTipoUsuario = "INSERT INTO Profesores (Nombre, Apellidos, UsuarioID) VALUES (?, ?, ?)";
+			try (PreparedStatement stmtProfesor = connection.prepareStatement(insertTipoUsuario)) {
+			    stmtProfesor.setString(1, nombre);
+			    stmtProfesor.setString(2, apellido);
+			    stmtProfesor.setInt(3, userId);
+			    stmtProfesor.executeUpdate();
+			} catch (Exception e) {
+			    // Si falla la inserción en Profesores, se elimina el usuario insertado previamente
+			    try (PreparedStatement delUser = connection.prepareStatement("DELETE FROM Usuarios WHERE NombreUsuario = ?")) {
+				delUser.setString(1, nombreUsuario);
+				delUser.executeUpdate();
+			    } catch (SQLException ex) {
+				ex.printStackTrace();
+			    }
 			}
 		    }
-		} else {
-
 		}
 		JOptionPane.showMessageDialog(this, "Usuario registrado con éxito, tu usuaario es: " + nombreUsuario + " y tu cotraceña es: " + contra);
 

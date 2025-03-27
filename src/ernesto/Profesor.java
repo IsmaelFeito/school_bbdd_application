@@ -73,7 +73,7 @@ public class Profesor extends JPanel {
 	// registrar user
 	registroButton = new JButton("Registrarse");
 	mainPanel.add(new RegistrarUser(cardLayout, mainPanel));
-	registroButton.addActionListener(e -> cardLayout.show(mainPanel, "registrarUser"));
+	registroButton.addActionListener(e -> cardLayout.show(mainPanel, "RegistrarUser"));
 	gbc.gridx = 1; gbc.gridy = 2; 
 	add(registroButton, gbc);
 	
@@ -84,7 +84,7 @@ public class Profesor extends JPanel {
         submitButton.addActionListener(e -> {
 	    try {
 		loginProfesor();
-	    } catch (NoSuchAlgorithmException ex) {
+	    } catch (NoSuchAlgorithmException | ClassNotFoundException ex) {
 		Logger.getLogger(Profesor.class.getName()).log(Level.SEVERE, null, ex);
                 JOptionPane.showMessageDialog(this, "Error al registrar usuario: "+ nombreUsuarioField.getText());
 	    }
@@ -94,7 +94,7 @@ public class Profesor extends JPanel {
 
     }
 		
-    private void loginProfesor() throws NoSuchAlgorithmException{
+    private void loginProfesor() throws NoSuchAlgorithmException, ClassNotFoundException{
 	String nombreUsuario = nombreUsuarioField.getText().trim();
 	String passwd = new String(contrasenaField.getPassword());
 
@@ -103,38 +103,33 @@ public class Profesor extends JPanel {
 	    return;
 	}
 	
-	try {
-	    System.out.println("contraseña str: "+passwd+ "user name str: "+nombreUsuario);
-	    Usuario user = new Usuario(nombreUsuario, passwd, "Profesor");
+	String checkUsuario = "SELECT ContrasenaHash FROM Usuarios WHERE NombreUsuario = ? AND TipoUsuario = 'Profesor'";
+	    
+	try (Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD)){
+	    PreparedStatement checkStmt = connection.prepareStatement(checkUsuario);
+	    
+	    checkStmt.setString(1, nombreUsuario);
+//	    System.out.println("contraseña: "+passwd+ " user name str: "+nombreUsuario);
+//	    Usuario user = new Usuario(nombreUsuario, passwd, "Profesor");
 
 	    //insert query
-	    Class.forName("org.mariadb.jdbc.Driver");
-	    Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD);
-	    String checkUsuario = "SELECT COUNT(*) FROM Usuarios WHERE NombreUsuario = ? AND TipoUsuario = Profesor";
+//	    Class.forName("org.mariadb.jdbc.Driver");
 	  
-	    try (PreparedStatement checkStmt = connection.prepareStatement(checkUsuario)){
-		checkStmt.setString(1, user.getNombreUsuario());
-		ResultSet rs = checkStmt.executeQuery();
-		
-		if(rs.next() && rs.getInt(1) > 0){
+	    try (ResultSet rs = checkStmt.executeQuery()){
+		if(rs.next()){
 		    String contrasena = rs.getString("ContrasenaHash");
-		    try{
-			if(contrasena.equals(Usuario.md5(passwd))){
-			    JOptionPane.showMessageDialog(this, "inicio exitoso");
-			    Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: " + nombreUsuario);
-			    
-			    ProfesorIniciado correrProfe = new ProfesorIniciado(cardLayout, mainPanel, "CorrerProfesor");
-			    mainPanel.add(correrProfe, "CorrerProfe");
-			    cardLayout.show(mainPanel, "CorrerProfe");
-			}else{
-			    JOptionPane.showMessageDialog(this, "contraseña incorrecta");
-			    nombreUsuarioField.setText("");
-			    contrasenaField.setText("");
-			    Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: " + nombreUsuario);
-			}
-		    }catch (NoSuchAlgorithmException e){
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Error al encriptar la contraseña");		    
+		    if(contrasena.equals(Usuario.md5(passwd))){
+			JOptionPane.showMessageDialog(this, "inicio exitoso");
+			Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: " + nombreUsuario);
+
+			ProfesorIniciado CorrerProfe = new ProfesorIniciado(cardLayout, mainPanel, nombreUsuario);
+			mainPanel.add(CorrerProfe, "CorrerProfe");
+			cardLayout.show(mainPanel, "CorrerProfe");
+		    }else{
+			JOptionPane.showMessageDialog(this, "contraseña incorrecta");
+			nombreUsuarioField.setText("");
+			contrasenaField.setText("");
+			Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: " + nombreUsuario);
 		    }
 		}else{
 		    JOptionPane.showMessageDialog(this, "Usuario no encontrado");
@@ -144,8 +139,6 @@ public class Profesor extends JPanel {
 	}catch (SQLException e) {
 	    e.printStackTrace();
 	    JOptionPane.showMessageDialog(this, "Error en la base de datos");
-	} catch (ClassNotFoundException ex) {
-	    Logger.getLogger(Alumno.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
 
