@@ -5,7 +5,11 @@
 package ernesto;
 
 import java.awt.*;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
+import java.time.LocalDate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 
 /**
@@ -16,8 +20,11 @@ public class RegistrarUser extends JPanel {
 
     private JPanel panelRegistro;
     private JTextField nombreField;
+    private JButton clearNombreButton;
     private JTextField apellidoField;
+    private JButton clearApellidoButton;
     private JTextField nombreUsuarioField;
+    private JTextField edadField;
     private JButton submitButton;
     private JButton backButton;
     private CardLayout cardLayout;
@@ -32,44 +39,103 @@ public class RegistrarUser extends JPanel {
 	GridBagConstraints gbc = new GridBagConstraints();
 	gbc.insets = new Insets(10, 10, 10, 10);
 
-	JLabel nombreLabel = new JLabel("Nombre: ");
-	gbc.gridx = 0; gbc.gridy = 0;
-	add(nombreLabel, gbc);
-	nombreField = new JTextField(15);
-	gbc.gridx = 1; gbc.gridy = 0;
-	add(nombreField, gbc);
-
-	JLabel apellidoLabel = new JLabel("Apellidos: ");
-	gbc.gridx = 0;gbc.gridy = 1;
-	add(apellidoLabel, gbc);
-	apellidoField = new JTextField(15);
-	gbc.gridx = 1;gbc.gridy = 1;
-	add(apellidoField, gbc);
-
 	JLabel tipoUsuarioLabel = new JLabel("Tipo de Usuario: ");
 	String[] tipoUsuario = {"Alumno", "Profesor"};
+	gbc.gridx = 0;
+	gbc.gridy = 0;
+	add(tipoUsuarioLabel, gbc);
 	tipoUsuarioCombo = new JComboBox<>(tipoUsuario);
-	add(tipoUsuarioCombo);
+	gbc.gridx = 1;
+	gbc.gridy = 0;
+	add(tipoUsuarioCombo, gbc);
+
+	JLabel nombreLabel = new JLabel("Nombre: ");
+	gbc.gridx = 0;
+	gbc.gridy = 1;
+	add(nombreLabel, gbc);
+	nombreField = new JTextField(15);
+	gbc.gridx = 1;
+	gbc.gridy = 1;
+	add(nombreField, gbc);
+	clearNombreButton = new JButton("x");
+	clearNombreButton.addActionListener(l
+		-> nombreField.setText(""));
+	gbc.gridx = 2;
+	gbc.gridy = 1;
+	add(clearNombreButton, gbc);
+	clearNombreButton.setPreferredSize(new Dimension(20, 20));
+	clearNombreButton.setMargin(new Insets(0, 0, 0, 0));
+
+	JLabel apellidoLabel = new JLabel("Apellidos: ");
+	gbc.gridx = 0;
+	gbc.gridy = 2;
+	add(apellidoLabel, gbc);
+	apellidoField = new JTextField(15);
+	gbc.gridx = 1;
+	gbc.gridy = 2;
+	add(apellidoField, gbc);
+	clearApellidoButton = new JButton("x");
+	clearApellidoButton.addActionListener(l
+		-> apellidoField.setText(""));
+	gbc.gridx = 2;
+	gbc.gridy = 2;
+	add(clearApellidoButton, gbc);
+	clearApellidoButton.setPreferredSize(new Dimension(20, 20));
+	clearApellidoButton.setMargin(new Insets(0, 0, 0, 0));
+
+	JLabel edadLabel = new JLabel("Edad: ");
+	gbc.gridx = 0;
+	gbc.gridy = 3;
+	add(edadLabel, gbc);
+	edadField = new JTextField(15);
+	gbc.gridx = 1;
+	gbc.gridy = 3;
+	add(edadField, gbc);
+	JButton clearEdadButton = new JButton("x");
+	clearEdadButton.addActionListener(l
+		-> edadField.setText(""));
+	gbc.gridx = 2;
+	gbc.gridy = 3;
+	add(clearEdadButton, gbc);
+	clearEdadButton.setPreferredSize(new Dimension(20, 20));
+	clearEdadButton.setMargin(new Insets(0, 0, 0, 0));
 
 	backButton = new JButton("<- Volver");
 	backButton.addActionListener(e -> cardLayout.show(mainPanel, "buttonsPanel"));
-	gbc.gridx = 0;gbc.gridy = 2;
+	gbc.gridx = 0;
+	gbc.gridy = 4;
 	add(backButton, gbc);
 
 	submitButton = new JButton("Enviar");//check on database 
 	submitButton.addActionListener(l -> {
-	    String selectedUserType = (String) tipoUsuarioCombo.getSelectedItem();
-	    registroLogin(selectedUserType);
+	    try {
+		String selectedUserType = (String) tipoUsuarioCombo.getSelectedItem();
+		registroLogin(selectedUserType);
+		nombreField.setText("");
+		apellidoField.setText("");
+		edadField.setText("");
+	    } catch (SQLException | ClassNotFoundException | NoSuchAlgorithmException ex) {
+		Logger.getLogger(RegistrarUser.class.getName()).log(Level.SEVERE, null, ex);
+	    }
 	});
 	gbc.gridx = 1;
-	gbc.gridy = 2;
+	gbc.gridy = 4;
 	add(submitButton, gbc);
     }
 
-    private void registroLogin(String userType) {
-	String nombre = nombreField.getText().trim();
-	String apellido = apellidoField.getText().trim();
-	if (nombre.isEmpty() || apellido.isEmpty()) {
+    private void registroLogin(String userType) throws SQLException, ClassNotFoundException, NoSuchAlgorithmException {
+	String nombre = nombreField.getText().replace(" ", "");
+	String apellido = apellidoField.getText().replace(" ", "");
+	String edadTexto = edadField.getText().trim();
+
+	int edad = 0;
+	try {
+	    edad = Integer.parseInt(edadTexto);
+	} catch (NumberFormatException e) {
+	    JOptionPane.showMessageDialog(this, "La edad debe ser un número válido.");
+	    return;
+	}
+	if (nombre.isEmpty() || apellido.isEmpty() || edad < 0) {
 	    JOptionPane.showMessageDialog(this, "El nombre y el apellido no pueden estar vacíos.");
 	    return;
 	}
@@ -103,21 +169,48 @@ public class RegistrarUser extends JPanel {
 		}
 	    }
 
-	    
 	    String contra = Usuario.generatePasswd();
 	    String contraHash = Usuario.md5(contra);
 
 	    String addUser = "INSERT INTO Usuarios (NombreUsuario, ContrasenaHash, TipoUsuario) VALUES (?, ?, ?)";;
-	    try (PreparedStatement checkStmt1 = connection.prepareStatement(addUser)) {
+	    try (PreparedStatement checkStmt1 = connection.prepareStatement(addUser, Statement.RETURN_GENERATED_KEYS)) {
 		checkStmt1.setString(1, nombreUsuario);
 		checkStmt1.setString(2, contraHash);
 		checkStmt1.setString(3, userType);
 		checkStmt1.executeUpdate();
-		JOptionPane.showMessageDialog(this, "Usuario registrado con éxito, tu usuaario es: " +nombreUsuario +" y tu cotraceña es: " + contra);
+
+		ResultSet id = checkStmt1.getGeneratedKeys();
+		if (id.next()) {
+		    int userId = id.getInt(1);
+
+		    String insertTipoUsuario = "";
+		    if (userType.equalsIgnoreCase("Alumno")) {
+			insertTipoUsuario = "INSERT INTO Alumnos (Nombre, Apellidos, Edad, FechaMatricula, UsuarioID) VALUES (?, ?, ?, ?, ?)";
+		    }
+		    try (PreparedStatement stmtAlumno = connection.prepareStatement(insertTipoUsuario)) {
+			stmtAlumno.setString(1, nombre);
+			stmtAlumno.setString(2, apellido);
+			stmtAlumno.setInt(3, edad);
+			stmtAlumno.setDate(4, java.sql.Date.valueOf(LocalDate.now()));
+			stmtAlumno.setInt(5, userId);
+			stmtAlumno.executeUpdate();
+		    } catch (Exception e) {
+			// Si falla la inserción en Alumnos, se elimina el usuario insertado previamente
+			try (PreparedStatement delUser = connection.prepareStatement("DELETE FROM Usuarios WHERE NombreUsuario = ?")) {
+			    delUser.setString(1, nombreUsuario);
+			    delUser.executeUpdate();
+			} catch (SQLException ex) {
+			    ex.printStackTrace();
+			}
+		    }
+		} else {
+
+		}
+		JOptionPane.showMessageDialog(this, "Usuario registrado con éxito, tu usuaario es: " + nombreUsuario + " y tu cotraceña es: " + contra);
+
 	    }
-	}catch(Exception e){
-	    System.out.println("Error al guardar los datos del usuario/");
-	    e.printStackTrace();
-       }
+	} catch (SQLException e) {
+	    JOptionPane.showMessageDialog(this, "Error al guardar los datos del usuario/");
+	}
     }
 }

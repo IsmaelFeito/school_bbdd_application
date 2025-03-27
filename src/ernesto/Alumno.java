@@ -41,7 +41,15 @@ public class Alumno extends JPanel {
 	nombreUsuarioField = new JTextField(15);
 	gbc.gridx = 1; gbc.gridy = 0; 
         add(nombreUsuarioField, gbc);
-	
+	//borrado de campo
+	JButton clearUserField = new JButton("x");
+	clearUserField.addActionListener(l -> 
+	    nombreUsuarioField.setText(""));
+	gbc.gridx = 2; gbc.gridy = 0;
+	clearUserField.setPreferredSize(new Dimension(20, 20));
+	clearUserField.setMargin(new Insets(0,0,0,0));
+	add(clearUserField, gbc);
+
 	JLabel contrasenaLabel = new JLabel("Contraseña: ");
 	gbc.gridx = 0; gbc.gridy = 1; 
         add(contrasenaLabel, gbc);
@@ -49,7 +57,15 @@ public class Alumno extends JPanel {
 	contrasenaField = new JPasswordField(15);	
         gbc.gridx = 1; gbc.gridy = 1;
         add(contrasenaField, gbc);
-	
+	//borrado de campo
+	JButton clearContraField = new JButton("x");
+	clearContraField.addActionListener(l -> 
+	    contrasenaField.setText(""));
+	gbc.gridx = 2; gbc.gridy = 1;
+	clearContraField.setPreferredSize(new Dimension(20, 20));
+	clearContraField.setMargin(new Insets(0,0,0,0));
+	add(clearContraField, gbc);
+		
 	backButton = new JButton("<- Volver");
 	backButton.addActionListener(e -> cardLayout.show(mainPanel, "buttonsPanel"));
 	gbc.gridx = 0; gbc.gridy = 2; 
@@ -112,6 +128,8 @@ public class Alumno extends JPanel {
 			    cardLayout.show(mainPanel, "CorrerAlumno");
 			}else{
 			    JOptionPane.showMessageDialog(this, "contraseña incorrecta");
+			    nombreUsuarioField.setText("");
+			    contrasenaField.setText("");
 			    Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: ");			
 			}
 		    }catch (NoSuchAlgorithmException e){
