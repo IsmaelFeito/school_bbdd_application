@@ -5,8 +5,8 @@
 package ernesto;
 import javax.swing.JFrame;
 
-/*josejose1 -> 4331
- *
+/*anaana -> 1340 Profesor
+ *pacopaco1 -> 44391
  * @author ifeito-m
  */
 public class Ernesto {

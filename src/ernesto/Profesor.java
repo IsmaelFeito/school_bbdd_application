@@ -88,6 +88,8 @@ public class Profesor extends JPanel {
 		Logger.getLogger(Profesor.class.getName()).log(Level.SEVERE, null, ex);
                 JOptionPane.showMessageDialog(this, "Error al registrar usuario: "+ nombreUsuarioField.getText());
 	    }
+	    nombreUsuarioField.setText("");
+	    contrasenaField.setText("");
 	});
         gbc.gridx = 2; gbc.gridy = 2;
 	add(submitButton, gbc);
@@ -109,11 +111,6 @@ public class Profesor extends JPanel {
 	    PreparedStatement checkStmt = connection.prepareStatement(checkUsuario);
 	    
 	    checkStmt.setString(1, nombreUsuario);
-//	    System.out.println("contraseña: "+passwd+ " user name str: "+nombreUsuario);
-//	    Usuario user = new Usuario(nombreUsuario, passwd, "Profesor");
-
-	    //insert query
-//	    Class.forName("org.mariadb.jdbc.Driver");
 	  
 	    try (ResultSet rs = checkStmt.executeQuery()){
 		if(rs.next()){

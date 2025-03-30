@@ -7,14 +7,17 @@ package ernesto;
 import java.awt.*;
 import java.sql.*;
 import javax.swing.*;
+import static javax.swing.SwingConstants.CENTER;
 /**
- *
+ *label profe
+ * clases y cursos
+ * 
+ * logout
  * @author ifeito-m
  */
 public class ProfesorIniciado extends JPanel{
     private JTextField nombreUsuarioField;
     private JButton logoutButton;
-    private JButton backButton;
     private CardLayout cardLayout;
     private JPanel mainPanel;
 
@@ -26,15 +29,34 @@ public class ProfesorIniciado extends JPanel{
 	GridBagConstraints gbc = new GridBagConstraints();
 	gbc.insets = new Insets(10, 10, 10, 10);
 	
-	JLabel datosLabel = ProfesorNameLabel(nombreUsuario); 
+        JLabel datosLabel = ProfesorNameLabel(nombreUsuario);
+        datosLabel.setHorizontalAlignment(SwingConstants.CENTER);
 	gbc.gridx = 0; gbc.gridy = 0;
+	gbc.gridwidth = 5;
+	gbc.fill = GridBagConstraints.HORIZONTAL;
 	add(datosLabel, gbc);
 	
-	backButton = new JButton("Loguot");
-	backButton.addActionListener(l -> 
-		cardLayout.show(mainPanel, "buttonsPanel"));
+	JButton prevButton = new JButton("Anterior alumno");
+	prevButton.addActionListener(l -> {
+	    
+	});
+	gbc.gridx=0; gbc.gridy = 1; gbc.gridwidth = 1;
+	add(prevButton, gbc);
+
+	JButton editarAlumno = new JButton("Editar Alumno");
+	editarAlumno.addActionListener(l -> {});
+	gbc.gridx=1; gbc.gridy=1;
+	add(editarAlumno, gbc);
+	
+	logoutButton = new JButton("Logout");
+	logoutButton.addActionListener(l -> {
+	    Usuario.registrarEnFichero(nombreUsuario, ":Logout de: " + nombreUsuario);
+	    JOptionPane.showMessageDialog(this, "Has cerrado sesión");
+	    
+	    cardLayout.show(mainPanel, "buttonsPanel");
+	});
 	gbc.gridx = 3; gbc.gridy = 1;
-	add(backButton, gbc);
+	add(logoutButton, gbc);
 //	chargeInfoProdesor();
     }
 
@@ -51,12 +73,12 @@ public class ProfesorIniciado extends JPanel{
 		return nombreCompletoLabel;
 	    }else{
 		JOptionPane.showMessageDialog(this, "Ususario no encontrado");
-		return null;
+		return new JLabel("Usuario no encontrado", SwingConstants.CENTER);
 	    }
 	}catch (SQLException e) {
 	    e.printStackTrace();
 	    JOptionPane.showMessageDialog(this, "Error en la base de datos -> usuario no encontrado");
-	    return null;
+	    return new JLabel("Usuario no encontrado", SwingConstants.CENTER);
 	}
     }
 }

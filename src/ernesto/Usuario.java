@@ -58,9 +58,8 @@ public class Usuario {
     }
 
     public static String  generatePasswd(){
-	int passwd = (int)(Math.random()*10000);// 99999 - 0;
-	String text = String.valueOf(passwd);//enviar contra cuando se establece a un fd
-	return text;
+	int passwd = (int)(Math.random()*100000);// 99999 - 00000;
+	return String.format("%05d", passwd);
     }
     
     private String  changePasswd(int passwd) throws NoSuchAlgorithmException{
