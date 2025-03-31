@@ -16,7 +16,7 @@ public class Interfaz extends JFrame{
     
     public Interfaz() throws ClassNotFoundException {
        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-       setSize(500, 300);
+       setSize(700, 300);
        setLocationRelativeTo(null);
 
        cardLayout = new CardLayout();

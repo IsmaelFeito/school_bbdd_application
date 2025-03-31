@@ -7,6 +7,7 @@ package ernesto;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import javax.swing.*;
 
 /**
  *
@@ -77,7 +78,7 @@ public class Usuario {
 	    
 	    return bytesToHex(digest);//casteo a cadena simle
 	}catch (NoSuchAlgorithmException e){
-	    throw new RuntimeException("Error con el algoritmo de encriptado (DM5)");
+	    throw new RuntimeException("Error con el algoritmo de encriptado (MD5)");
 	}
 	
     }
@@ -104,5 +105,15 @@ public class Usuario {
 	}
     }
 
+    
+    public static boolean esNumeroEntero(JTextField textField) {
+	try {
+	    if ((Integer.parseInt(textField.getText().trim()) > 10) && (Integer.parseInt(textField.getText().trim()) <= 99))
+		return true;
+	    return false;
+	} catch (NumberFormatException e) {
+	    return false;
+	}
+    }
 }
 
