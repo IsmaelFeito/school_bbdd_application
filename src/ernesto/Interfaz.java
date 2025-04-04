@@ -23,8 +23,8 @@ public class Interfaz extends JFrame{
        mainPanel = new JPanel(cardLayout);
        
 	ButtonsInterface buttonsPanel = new ButtonsInterface(cardLayout, mainPanel);
-	Profesor profesorPanel = new Profesor(cardLayout, mainPanel);
-	Alumno alumnoPanel = new Alumno(cardLayout, mainPanel);
+	ProfesorPanel profesorPanel = new ProfesorPanel(cardLayout, mainPanel);
+	AlumnoPanel alumnoPanel = new AlumnoPanel(cardLayout, mainPanel);
 	
 	mainPanel.add(buttonsPanel, "buttonsPanel");
 	mainPanel.add(alumnoPanel, "AlumnoPanel");

@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package ernesto;
 
 import java.awt.*;
@@ -10,11 +6,8 @@ import java.sql.*;
 import java.util.logging.*;
 import javax.swing.*;
 
-/**
- *
- * @author ifeito-m
- */
-public class Alumno extends JPanel {
+public class ProfesorPanel extends JPanel {
+
     private JTextField nombreUsuarioField;
     private JPasswordField contrasenaField;
     private JButton backButton;
@@ -22,26 +15,26 @@ public class Alumno extends JPanel {
     private JButton registroButton;
     private CardLayout cardLayout;
     private JPanel mainPanel;
-    
-    public Alumno(CardLayout cardLayout, JPanel mainPanel) {
+
+    public ProfesorPanel (CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
-	
-	setLayout(new GridBagLayout());
-	GridBagConstraints gbc = new GridBagConstraints();
-	gbc.insets = new Insets(10, 10, 10, 10);
 
-	
-	JLabel nombreUsuarioLabel = new JLabel("Nombre de usuario: ");
-	nombreUsuarioLabel.setForeground(Color.BLACK);
-        nombreUsuarioLabel.setOpaque(true);
-        gbc.gridx = 0; gbc.gridy = 0; 
-	add(nombreUsuarioLabel, gbc);
-	
+        // Establecer el layout de este panel
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        JLabel nombreLabel = new JLabel("Nombre de usuario: ");
+        nombreLabel.setForeground(Color.BLACK);
+        nombreLabel.setOpaque(true);
+	gbc.gridx = 0; gbc.gridy = 0;
+	add(nombreLabel, gbc);
+        
 	nombreUsuarioField = new JTextField(15);
-	gbc.gridx = 1; gbc.gridy = 0; 
-        add(nombreUsuarioField, gbc);
-
+	gbc.gridx = 1; gbc.gridy = 0;
+	add(nombreUsuarioField, gbc);
+	
 	JButton clearUserField = new JButton("x");
 	clearUserField.addActionListener(l -> 
 	    nombreUsuarioField.setText(""));
@@ -49,18 +42,18 @@ public class Alumno extends JPanel {
 	clearUserField.setPreferredSize(new Dimension(20, 20));
 	clearUserField.setMargin(new Insets(0,0,0,0));
 	add(clearUserField, gbc);
-
-	JLabel contrasenaLabel = new JLabel("Contraseña: ");
+	
+	//Contraseña
+        JLabel contrasenaLabel = new JLabel("Contraseña: ");
         contrasenaLabel.setForeground(Color.BLACK);
         contrasenaLabel.setOpaque(true);
-	gbc.gridx = 0; gbc.gridy = 1; 
+        gbc.gridx = 0; gbc.gridy = 1;
         add(contrasenaLabel, gbc);
 
-	contrasenaField = new JPasswordField(15);	
+	contrasenaField = new JPasswordField(15);
         gbc.gridx = 1; gbc.gridy = 1;
         add(contrasenaField, gbc);
-
-
+	
 	JButton clearContraField = new JButton("x");
 	clearContraField.addActionListener(l -> 
 	    contrasenaField.setText(""));
@@ -68,40 +61,42 @@ public class Alumno extends JPanel {
 	clearContraField.setPreferredSize(new Dimension(20, 20));
 	clearContraField.setMargin(new Insets(0,0,0,0));
 	add(clearContraField, gbc);
-		
-	backButton = new JButton("<- Volver");
+
+        // Configurar botón para volver
+        backButton = new JButton("<- Volver");
         backButton.setBackground(new Color(255, 102, 102));
         backButton.setForeground(Color.WHITE);
-	backButton.addActionListener(e -> cardLayout.show(mainPanel, "buttonsPanel"));
-	gbc.gridx = 0; gbc.gridy = 2; 
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "buttonsPanel"));
+        gbc.gridx = 0; gbc.gridy = 2;
 	add(backButton, gbc);
-	
+
+	// registrar user
 	registroButton = new JButton("Registrarse");
+	mainPanel.add(new RegistrarUser(cardLayout, mainPanel));
 	registroButton.addActionListener(e -> cardLayout.show(mainPanel, "RegistrarUser"));
 	gbc.gridx = 1; gbc.gridy = 2; 
 	add(registroButton, gbc);
 	
-	submitButton = new JButton("Entrar ->");
+        // Configurar botón de envío
+        submitButton = new JButton("Acceder ->");
         submitButton.setBackground(new Color(121, 213, 57));
         submitButton.setForeground(Color.WHITE);
-	submitButton.addActionListener(l -> {
+        submitButton.addActionListener(e -> {
 	    try {
-		loginAlumno();
-	    } catch (Exception ex) {
-                Logger.getLogger(Alumno.class.getName()).log(Level.SEVERE, "Error al registrar usuario", ex);
+		loginProfesor();
+	    } catch (NoSuchAlgorithmException | ClassNotFoundException ex) {
+		Logger.getLogger(ProfesorPanel.class.getName()).log(Level.SEVERE, null, ex);
                 JOptionPane.showMessageDialog(this, "Error al registrar usuario: "+ nombreUsuarioField.getText());
-            }
+	    }
+	    nombreUsuarioField.setText("");
+	    contrasenaField.setText("");
 	});
-	gbc.gridx = 2; gbc.gridy = 2;
-        add(submitButton, gbc);
+        gbc.gridx = 2; gbc.gridy = 2;
+	add(submitButton, gbc);
 
-	mainPanel.add(this, "AlumnoPanel");
-	RegistrarUser panelRegistro = new RegistrarUser(cardLayout, mainPanel);
-	mainPanel.add(panelRegistro, "RegistrarUser");
     }
-
-    
-    private void loginAlumno() throws NoSuchAlgorithmException{
+		
+    private void loginProfesor() throws NoSuchAlgorithmException, ClassNotFoundException{
 	String nombreUsuario = nombreUsuarioField.getText().trim();
 	String passwd = new String(contrasenaField.getPassword());
 
@@ -111,26 +106,27 @@ public class Alumno extends JPanel {
 	}
 	
 	String checkUsuario = "SELECT ContrasenaHash FROM Usuarios WHERE NombreUsuario = ? AND TipoUsuario = 'Profesor'";
-	
+	    
 	try (Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD)){
 	    PreparedStatement checkStmt = connection.prepareStatement(checkUsuario);
+	    
 	    checkStmt.setString(1, nombreUsuario);
 	  
 	    try (ResultSet rs = checkStmt.executeQuery()){
-		if(rs.next() && rs.getInt(1) > 0){
+		if(rs.next()){
 		    String contrasena = rs.getString("ContrasenaHash");
 		    if(contrasena.equals(Usuario.md5(passwd))){
 			JOptionPane.showMessageDialog(this, "inicio exitoso");
-			Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: ");
-			
-			AlumnoIniciado correrAlumno = new AlumnoIniciado(cardLayout, mainPanel, nombreUsuario);
-			mainPanel.add(correrAlumno, "CorrerAlumno");
-			cardLayout.show(mainPanel, "CorrerAlumno");
+			Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: " + nombreUsuario);
+
+			ProfesorIniciado CorrerProfe = new ProfesorIniciado(cardLayout, mainPanel, nombreUsuario);
+			mainPanel.add(CorrerProfe, "CorrerProfe");
+			cardLayout.show(mainPanel, "CorrerProfe");
 		    }else{
 			JOptionPane.showMessageDialog(this, "contraseña incorrecta");
 			nombreUsuarioField.setText("");
 			contrasenaField.setText("");
-			Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: ");			
+			Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: " + nombreUsuario);
 		    }
 		}else{
 		    JOptionPane.showMessageDialog(this, "Usuario no encontrado");
@@ -142,5 +138,5 @@ public class Alumno extends JPanel {
 	    JOptionPane.showMessageDialog(this, "Error en la base de datos");
 	}
     }
-    
+
 }

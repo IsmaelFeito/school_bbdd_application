@@ -78,32 +78,32 @@ public class AnadirAlumno extends JPanel {
     }
 
     private void cargarAlumnos() {
-        alumnoComboBox.removeAllItems();
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT AlumnoID, Nombre, Apellidos FROM Alumnos ORDER BY Apellidos, Nombre")) {
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                String nombreCompleto = rs.getString("Nombre") + " " + rs.getString("Apellidos");
-                alumnoComboBox.addItem(nombreCompleto);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al cargar alumnos");
-        }
+	alumnoComboBox.removeAllItems();
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT AlumnoID, Nombre, Apellidos FROM Alumnos ORDER BY Apellidos, Nombre")) {
+	    ResultSet rs = stmt.executeQuery();
+	    while (rs.next()) {
+		String nombreCompleto = rs.getString("Nombre") + " " + rs.getString("Apellidos");
+		alumnoComboBox.addItem(nombreCompleto);
+	    }
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    JOptionPane.showMessageDialog(this, "Error al cargar alumnos");
+	}
     }
 
     private void cargarCursos() {
-        cursoComboBox.removeAllItems();
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT CursoID, NombreCurso FROM Cursos ORDER BY NombreCurso")) {
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                cursoComboBox.addItem(rs.getString("NombreCurso"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al cargar cursos");
-        }
+	cursoComboBox.removeAllItems();
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT CursoID, NombreCurso FROM Cursos ORDER BY NombreCurso")) {
+	    ResultSet rs = stmt.executeQuery();
+	    while (rs.next()) {
+		cursoComboBox.addItem(rs.getString("NombreCurso"));
+	    }
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    JOptionPane.showMessageDialog(this, "Error al cargar cursos");
+	}
     }
 
     private void cargarModulos() {
@@ -157,7 +157,7 @@ public class AnadirAlumno extends JPanel {
             asignarAlumnoModulo(alumnoID, moduloID);
             
             // Actualizar curso del alumno
-            actualizarCursoAlumno(alumnoID, cursoID);
+//            actualizarCursoAlumno(alumnoID, cursoID);
 
             JOptionPane.showMessageDialog(this, "Alumno asignado correctamente");
             cardLayout.show(mainPanel, "ProfesorIniciado");
@@ -193,38 +193,45 @@ public class AnadirAlumno extends JPanel {
         }
     }
 
-    private void actualizarCursoAlumno(int alumnoID, int cursoID) throws SQLException {
-        // Primero verificar si ya existe una relación en Alumnos_Cursos
-        try (PreparedStatement checkStmt = conn.prepareStatement(
-                "SELECT 1 FROM Alumnos_Cursos WHERE AlumnoID = ?")) {
-            checkStmt.setInt(1, alumnoID);
-            ResultSet rs = checkStmt.executeQuery();
-            
-            if (rs.next()) {
-                // Actualizar relación existente
-                try (PreparedStatement updateStmt = conn.prepareStatement(
-                        "UPDATE Alumnos_Cursos SET CursoID = ? WHERE AlumnoID = ?")) {
-                    updateStmt.setInt(1, cursoID);
-                    updateStmt.setInt(2, alumnoID);
-                    updateStmt.executeUpdate();
-                }
-            } else {
-                // Crear nueva relación
-                try (PreparedStatement insertStmt = conn.prepareStatement(
-                        "INSERT INTO Alumnos_Cursos (AlumnoID, CursoID) VALUES (?, ?)")) {
-                    insertStmt.setInt(1, alumnoID);
-                    insertStmt.setInt(2, cursoID);
-                    insertStmt.executeUpdate();
-                }
-            }
-        }
-        
-        // Actualizar también el campo Curso en la tabla Alumnos
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "UPDATE Alumnos SET Curso = (SELECT NombreCurso FROM Cursos WHERE CursoID = ?) WHERE AlumnoID = ?")) {
-            stmt.setInt(1, cursoID);
-            stmt.setInt(2, alumnoID);
-            stmt.executeUpdate();
-        }
+    private void asociarAlumnoCurso(int alumnoID, String cursoSeleccionado) {
+	try {
+	    // Obtener ID del curso
+	    int cursoID;
+	    try (PreparedStatement stmt = conn.prepareStatement(
+		    "SELECT CursoID FROM Cursos WHERE NombreCurso = ?")) {
+		stmt.setString(1, cursoSeleccionado);
+		ResultSet rs = stmt.executeQuery();
+		if (!rs.next()) {
+		    throw new SQLException("Curso no encontrado");
+		}
+		cursoID = rs.getInt("CursoID");
+	    }
+
+	    // Verificar si ya existe la relación
+	    try (PreparedStatement checkStmt = conn.prepareStatement(
+		    "SELECT 1 FROM Alumnos_Cursos WHERE AlumnoID = ? AND CursoID = ?")) {
+		checkStmt.setInt(1, alumnoID);
+		checkStmt.setInt(2, cursoID);
+		ResultSet rs = checkStmt.executeQuery();
+
+		if (rs.next()) {
+		    JOptionPane.showMessageDialog(this, "El alumno ya está asignado a este curso");
+		    return;
+		}
+	    }
+
+	    // Crear nueva relación
+	    try (PreparedStatement insertStmt = conn.prepareStatement(
+		    "INSERT INTO Alumnos_Cursos (AlumnoID, CursoID, AñoAcademico) VALUES (?, ?, ?)")) {
+		insertStmt.setInt(1, alumnoID);
+		insertStmt.setInt(2, cursoID);
+		insertStmt.setInt(3, java.time.Year.now().getValue());
+		insertStmt.executeUpdate();
+		JOptionPane.showMessageDialog(this, "Alumno asignado al curso correctamente");
+	    }
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    JOptionPane.showMessageDialog(this, "Error al asignar alumno al curso");
+	}
     }
 }

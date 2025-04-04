@@ -18,13 +18,13 @@ public class EditarAlumno extends JPanel {
     private JPanel mainPanel;
     private CardLayout cardLayout;
     private Connection conn;
-    private Alumno alumno;
+    private AlumnoPersona alumno;
     
     private JTextField nombreField, apellidosField;
     private JComboBox<String> cursoComboBox;
     private JButton guardarBtn, cancelarBtn, eliminarBtn;
     
-    public EditarAlumno(JPanel mainPanel, CardLayout cardLayout, Connection conn, Alumno alumno) {
+    public EditarAlumno(JPanel mainPanel, CardLayout cardLayout, Connection conn, AlumnoPersona alumno) {
         this.mainPanel = mainPanel;
         this.cardLayout = cardLayout;
         this.conn = conn;
@@ -147,42 +147,43 @@ public class EditarAlumno extends JPanel {
     }
     
     private void actualizarCursoAlumno(int alumnoID, String nombreCurso) throws SQLException {
-        // Obtener ID del nuevo curso
-        int cursoID;
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT CursoID FROM Cursos WHERE NombreCurso = ?")) {
-            stmt.setString(1, nombreCurso);
-            ResultSet rs = stmt.executeQuery();
-            if (!rs.next()) {
-                throw new SQLException("Curso no encontrado");
-            }
-            cursoID = rs.getInt("CursoID");
-        }
-        
-        // Actualizar relación en Alumnos_Cursos
-        try (PreparedStatement checkStmt = conn.prepareStatement(
-                "SELECT 1 FROM Alumnos_Cursos WHERE AlumnoID = ?")) {
-            checkStmt.setInt(1, alumnoID);
-            ResultSet rs = checkStmt.executeQuery();
-            
-            if (rs.next()) {
-                // Actualizar relación existente
-                try (PreparedStatement updateStmt = conn.prepareStatement(
-                        "UPDATE Alumnos_Cursos SET CursoID = ? WHERE AlumnoID = ?")) {
-                    updateStmt.setInt(1, cursoID);
-                    updateStmt.setInt(2, alumnoID);
-                    updateStmt.executeUpdate();
-                }
-            } else {
-                // Crear nueva relación
-                try (PreparedStatement insertStmt = conn.prepareStatement(
-                        "INSERT INTO Alumnos_Cursos (AlumnoID, CursoID) VALUES (?, ?)")) {
-                    insertStmt.setInt(1, alumnoID);
-                    insertStmt.setInt(2, cursoID);
-                    insertStmt.executeUpdate();
-                }
-            }
-        }
+	// Obtener ID del nuevo curso
+	int cursoID;
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT CursoID FROM Cursos WHERE NombreCurso = ?")) {
+	    stmt.setString(1, nombreCurso);
+	    ResultSet rs = stmt.executeQuery();
+	    if (!rs.next()) {
+		throw new SQLException("Curso no encontrado");
+	    }
+	    cursoID = rs.getInt("CursoID");
+	}
+
+	// Actualizar relación en Alumnos_Cursos
+	try (PreparedStatement checkStmt = conn.prepareStatement(
+		"SELECT 1 FROM Alumnos_Cursos WHERE AlumnoID = ?")) {
+	    checkStmt.setInt(1, alumnoID);
+	    ResultSet rs = checkStmt.executeQuery();
+
+	    if (rs.next()) {
+		// Actualizar relación existente
+		try (PreparedStatement updateStmt = conn.prepareStatement(
+			"UPDATE Alumnos_Cursos SET CursoID = ? WHERE AlumnoID = ?")) {
+		    updateStmt.setInt(1, cursoID);
+		    updateStmt.setInt(2, alumnoID);
+		    updateStmt.executeUpdate();
+		}
+	    } else {
+		// Crear nueva relación
+		try (PreparedStatement insertStmt = conn.prepareStatement(
+			"INSERT INTO Alumnos_Cursos (AlumnoID, CursoID, AñoAcademico) VALUES (?, ?, ?)")) {
+		    insertStmt.setInt(1, alumnoID);
+		    insertStmt.setInt(2, cursoID);
+		    insertStmt.setInt(3, java.time.Year.now().getValue());
+		    insertStmt.executeUpdate();
+		}
+	    }
+	}
     }
     
     private void eliminarAlumno() {
@@ -229,24 +230,5 @@ public class EditarAlumno extends JPanel {
             }
         }
     }
-    
-    // Clase interna para representar alumnos (debe coincidir con la usada en ProfesorIniciado)
-    public static class Alumno {
-        private int id;
-        private String nombre;
-        private String apellidos;
-        private String curso;
-        
-        public Alumno(int id, String nombre, String apellidos, String curso) {
-            this.id = id;
-            this.nombre = nombre;
-            this.apellidos = apellidos;
-            this.curso = curso;
-        }
-        
-        public int getId() { return id; }
-        public String getNombre() { return nombre; }
-        public String getApellidos() { return apellidos; }
-        public String getCurso() { return curso; }
-    }
+
 }
