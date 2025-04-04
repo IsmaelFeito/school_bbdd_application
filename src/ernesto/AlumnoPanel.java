@@ -84,63 +84,58 @@ public class AlumnoPanel extends JPanel {
 	submitButton = new JButton("Entrar ->");
         submitButton.setBackground(new Color(121, 213, 57));
         submitButton.setForeground(Color.WHITE);
-	submitButton.addActionListener(l -> {
+	submitButton.addActionListener(e -> {
 	    try {
 		loginAlumno();
-	    } catch (Exception ex) {
-                Logger.getLogger(AlumnoPanel.class.getName()).log(Level.SEVERE, "Error al registrar usuario", ex);
-                JOptionPane.showMessageDialog(this, "Error al registrar usuario: "+ nombreUsuarioField.getText());
-            }
+	    } catch (NoSuchAlgorithmException ex) {
+		JOptionPane.showMessageDialog(this, "Error en el sistema de seguridad");
+		Logger.getLogger(AlumnoPanel.class.getName()).log(Level.SEVERE, null, ex);
+	    }
 	});
-	gbc.gridx = 2; gbc.gridy = 2;
-        add(submitButton, gbc);
-
-	mainPanel.add(this, "AlumnoPanel");
-	RegistrarUser panelRegistro = new RegistrarUser(cardLayout, mainPanel);
-	mainPanel.add(panelRegistro, "RegistrarUser");
-    }
+	gbc.gridx = 2; gbc.gridy = 2; 
+	add(submitButton, gbc);
+}
 
     
-    private void loginAlumno() throws NoSuchAlgorithmException{
+    private void loginAlumno() throws NoSuchAlgorithmException {
 	String nombreUsuario = nombreUsuarioField.getText().trim();
 	String passwd = new String(contrasenaField.getPassword());
 
-	if((nombreUsuario.isEmpty() || passwd.isEmpty()) || (nombreUsuario.isEmpty() && passwd.isEmpty())){
+	if(nombreUsuario.isEmpty() || passwd.isEmpty()) {
 	    JOptionPane.showMessageDialog(this, "El usuario y la contraseña no pueden estar vacíos.");
 	    return;
 	}
-	
-	String checkUsuario = "SELECT ContrasenaHash FROM Usuarios WHERE NombreUsuario = ? AND TipoUsuario = 'Profesor'";
-	
-	try (Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD)){
-	    PreparedStatement checkStmt = connection.prepareStatement(checkUsuario);
+
+	// Consulta corregida para alumnos
+	String checkUsuario = "SELECT ContrasenaHash FROM Usuarios WHERE NombreUsuario = ? AND TipoUsuario = 'Alumno'";
+
+	try (Connection connection = DriverManager.getConnection(SettingsMaria.URL, SettingsMaria.USUARIO, SettingsMaria.PASSWORD);
+	    PreparedStatement checkStmt = connection.prepareStatement(checkUsuario);){
 	    checkStmt.setString(1, nombreUsuario);
-	  
-	    try (ResultSet rs = checkStmt.executeQuery()){
-		if(rs.next() && rs.getInt(1) > 0){
-		    String contrasena = rs.getString("ContrasenaHash");
-		    if(contrasena.equals(Usuario.md5(passwd))){
-			JOptionPane.showMessageDialog(this, "inicio exitoso");
-			Usuario.registrarEnFichero(nombreUsuario, "inicio exitoso de: ");
-			
+
+	    try (ResultSet rs = checkStmt.executeQuery()) {
+		if(rs.next()) {
+		    String contrasenaHash = rs.getString("ContrasenaHash");
+		    if(contrasenaHash.equals(Usuario.md5(passwd))) {
+			JOptionPane.showMessageDialog(this, "Inicio de sesión exitoso");
+			Usuario.registrarEnFichero(nombreUsuario, "Inicio exitoso de alumno: " + nombreUsuario);
+
 			AlumnoIniciado correrAlumno = new AlumnoIniciado(cardLayout, mainPanel, nombreUsuario);
 			mainPanel.add(correrAlumno, "CorrerAlumno");
 			cardLayout.show(mainPanel, "CorrerAlumno");
-		    }else{
-			JOptionPane.showMessageDialog(this, "contraseña incorrecta");
-			nombreUsuarioField.setText("");
+		    } else {
+			JOptionPane.showMessageDialog(this, "Contraseña incorrecta");
 			contrasenaField.setText("");
-			Usuario.registrarEnFichero(nombreUsuario, "contraseña fallida de: ");			
+			Usuario.registrarEnFichero(nombreUsuario, "Intento fallido de inicio (contraseña incorrecta)");            
 		    }
-		}else{
-		    JOptionPane.showMessageDialog(this, "Usuario no encontrado");
-		    Usuario.registrarEnFichero(nombreUsuario, "Fallo en login - Usuario no encontrado");		    
+		} else {
+		    JOptionPane.showMessageDialog(this, "Usuario no encontrado o no es un alumno");
+		    Usuario.registrarEnFichero(nombreUsuario, "Intento fallido - Usuario no encontrado");            
 		}
 	    }
-	}catch (SQLException e) {
+	} catch (SQLException e) {
 	    e.printStackTrace();
-	    JOptionPane.showMessageDialog(this, "Error en la base de datos");
+	    JOptionPane.showMessageDialog(this, "Error en la base de datos: " + e.getMessage());
 	}
-    }
-    
+    }    
 }

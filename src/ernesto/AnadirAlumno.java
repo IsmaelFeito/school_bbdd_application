@@ -9,7 +9,7 @@ public class AnadirAlumno extends JPanel {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private Connection conn;
-    private JComboBox<String> alumnoComboBox, cursoComboBox, moduloComboBox;
+    private JComboBox<String> alumnoComboBox, cursoComboBox, asignaturaComboBox;
     private JButton asignarBtn, backBtn;
 
     public AnadirAlumno(JPanel mainPanel, CardLayout cardLayout, Connection conn) {
@@ -45,19 +45,19 @@ public class AnadirAlumno extends JPanel {
         // Selección de Curso
         JLabel cursoLabel = new JLabel("Seleccionar Curso:");
         cursoComboBox = new JComboBox<>();
-        cursoComboBox.addActionListener(e -> cargarModulos());
+        cursoComboBox.addActionListener(e -> cargarAsignatura());
         gbc.gridx = 0; gbc.gridy = 2;
         add(cursoLabel, gbc);
         gbc.gridx = 1;
         add(cursoComboBox, gbc);
 
         // Selección de Módulo
-        JLabel moduloLabel = new JLabel("Seleccionar Módulo:");
-        moduloComboBox = new JComboBox<>();
+        JLabel asignaturaLabel = new JLabel("Seleccionar Módulo:");
+        asignaturaComboBox = new JComboBox<>();
         gbc.gridx = 0; gbc.gridy = 3;
-        add(moduloLabel, gbc);
+        add(asignaturaLabel, gbc);
         gbc.gridx = 1;
-        add(moduloComboBox, gbc);
+        add(asignaturaComboBox, gbc);
 
         // Botón Asignar
         asignarBtn = new JButton("Asignar Alumno");
@@ -106,67 +106,63 @@ public class AnadirAlumno extends JPanel {
 	}
     }
 
-    private void cargarModulos() {
-        moduloComboBox.removeAllItems();
-        String cursoSeleccionado = (String) cursoComboBox.getSelectedItem();
-        if (cursoSeleccionado == null) return;
+    private void cargarAsignatura() {
+	asignaturaComboBox.removeAllItems();
+	String cursoSeleccionado = (String) cursoComboBox.getSelectedItem();
+	if (cursoSeleccionado == null) return;
 
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT m.ModuloID, m.Nombre FROM Modulos m " +
-                "JOIN Cursos c ON m.CursoID = c.CursoID " +
-                "WHERE c.NombreCurso = ? ORDER BY m.Nombre")) {
-            stmt.setString(1, cursoSeleccionado);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                moduloComboBox.addItem(rs.getString("Nombre"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al cargar módulos");
-        }
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT a.AsignaturaID, a.NombreAsignatura FROM Asignaturas a " +
+		"JOIN Cursos c ON a.CursoID = c.CursoID " +
+		"WHERE c.NombreCurso = ? ORDER BY a.NombreAsignatura")) {
+	    stmt.setString(1, cursoSeleccionado);
+	    ResultSet rs = stmt.executeQuery();
+	    while (rs.next()) {
+		asignaturaComboBox.addItem(rs.getString("NombreAsignatura"));
+	    }
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    JOptionPane.showMessageDialog(this, "Error al cargar asignaturas");
+	}
     }
 
     private void asignarAlumno() {
         String alumnoSeleccionado = (String) alumnoComboBox.getSelectedItem();
         String cursoSeleccionado = (String) cursoComboBox.getSelectedItem();
-        String moduloSeleccionado = (String) moduloComboBox.getSelectedItem();
+        String asignaturaSeleccionada = (String) asignaturaComboBox.getSelectedItem();
 
-        if (alumnoSeleccionado == null || cursoSeleccionado == null || moduloSeleccionado == null) {
+        if (alumnoSeleccionado == null || cursoSeleccionado == null || asignaturaSeleccionada == null) {
             JOptionPane.showMessageDialog(this, "Seleccione un alumno, un curso y un módulo");
             return;
         }
 
-        try {
-            // Obtener IDs
-            int alumnoID = obtenerID("SELECT AlumnoID FROM Alumnos WHERE CONCAT(Nombre, ' ', Apellidos) = ?", alumnoSeleccionado);
-            int cursoID = obtenerID("SELECT CursoID FROM Cursos WHERE NombreCurso = ?", cursoSeleccionado);
-            int moduloID = obtenerID("SELECT ModuloID FROM Modulos WHERE Nombre = ?", moduloSeleccionado);
+	try {
+        // Obtener IDs - cambiar AsignaturaID por AsignaturaID
+	    int alumnoID = obtenerID("SELECT AlumnoID FROM Alumnos WHERE CONCAT(Nombre, ' ', Apellidos) = ?", alumnoSeleccionado);
+	    int cursoID = obtenerID("SELECT CursoID FROM Cursos WHERE NombreCurso = ?", cursoSeleccionado);
+	    int asignaturaID = obtenerID("SELECT AsignaturaID FROM Asignaturas WHERE NombreAsignatura = ?", asignaturaSeleccionada);
 
-            if (alumnoID == -1 || cursoID == -1 || moduloID == -1) {
-                JOptionPane.showMessageDialog(this, "Error al obtener datos de la base de datos");
-                return;
-            }
+	    if (alumnoID == -1 || cursoID == -1 || asignaturaID == -1) {
+		JOptionPane.showMessageDialog(this, "Error al obtener datos de la base de datos");
+		return;
+	    }
 
-            // Verificar si ya existe la asignación
-            if (existeAsignacion(alumnoID, moduloID)) {
-                JOptionPane.showMessageDialog(this, "Este alumno ya está asignado a este módulo");
-                return;
-            }
+	    // Verificar si ya existe la asignación - cambiar tabla Alumnos_Asignaturas por Alumnos_Cursos
+	    if (existeAsignacion(alumnoID, cursoID)) {
+		JOptionPane.showMessageDialog(this, "Este alumno ya está asignado a este curso");
+		return;
+	    }
 
-            // Asignar alumno al módulo
-            asignarAlumnoModulo(alumnoID, moduloID);
-            
-            // Actualizar curso del alumno
-//            actualizarCursoAlumno(alumnoID, cursoID);
+	    // Asignar alumno al curso
+	    asignarAlumnoCurso(alumnoID, cursoID);
 
-            JOptionPane.showMessageDialog(this, "Alumno asignado correctamente");
-            cardLayout.show(mainPanel, "ProfesorIniciado");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al asignar alumno");
-        }
+	    JOptionPane.showMessageDialog(this, "Alumno asignado correctamente");
+	    cardLayout.show(mainPanel, "ProfesorIniciado");
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	    JOptionPane.showMessageDialog(this, "Error al asignar alumno");
+	}
     }
-
     private int obtenerID(String query, String valor) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, valor);
@@ -175,22 +171,23 @@ public class AnadirAlumno extends JPanel {
         }
     }
 
-    private boolean existeAsignacion(int alumnoID, int moduloID) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT 1 FROM Alumnos_Modulos WHERE AlumnoID = ? AND ModuloID = ?")) {
-            stmt.setInt(1, alumnoID);
-            stmt.setInt(2, moduloID);
-            return stmt.executeQuery().next();
-        }
+    private boolean existeAsignacion(int alumnoID, int cursoID) throws SQLException {
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT 1 FROM Alumnos_Cursos WHERE AlumnoID = ? AND CursoID = ?")) {
+	    stmt.setInt(1, alumnoID);
+	    stmt.setInt(2, cursoID);
+	    return stmt.executeQuery().next();
+	}
     }
 
-    private void asignarAlumnoModulo(int alumnoID, int moduloID) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO Alumnos_Modulos (AlumnoID, ModuloID) VALUES (?, ?)")) {
-            stmt.setInt(1, alumnoID);
-            stmt.setInt(2, moduloID);
-            stmt.executeUpdate();
-        }
+    private void asignarAlumnoCurso(int alumnoID, int cursoID) throws SQLException {
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"INSERT INTO Alumnos_Cursos (AlumnoID, CursoID, AñoAcademico) VALUES (?, ?, ?)")) {
+	    stmt.setInt(1, alumnoID);
+	    stmt.setInt(2, cursoID);
+	    stmt.setInt(3, java.time.Year.now().getValue());
+	    stmt.executeUpdate();
+	}
     }
 
     private void asociarAlumnoCurso(int alumnoID, String cursoSeleccionado) {

@@ -6,6 +6,8 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ProfesorIniciado extends JPanel {
     private Connection conn;
@@ -18,6 +20,8 @@ public class ProfesorIniciado extends JPanel {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private String nombreUsuario;
+    private int profesorID;
+    private int asignaturaID;
     
     private List<AlumnoPersona> alumnos = new ArrayList<>();
     private int currentAlumnoIndex = -1;
@@ -125,7 +129,14 @@ public class ProfesorIniciado extends JPanel {
         notasPanel.add(notaFinalField);
         
         guardarNotasButton = new JButton("Guardar Notas");
-        guardarNotasButton.addActionListener(e -> guardarNotas());
+        guardarNotasButton.addActionListener(e -> {
+	    try {
+		guardarNotas();
+	    } catch (SQLException ex) {
+		Logger.getLogger(ProfesorIniciado.class.getName()).log(Level.SEVERE, null, ex);
+		JOptionPane.showMessageDialog(centerPanel, "Error al guardar Notas");
+	    }
+	});
         notasPanel.add(guardarNotasButton);
         
         add(notasPanel, BorderLayout.SOUTH);
@@ -144,21 +155,20 @@ public class ProfesorIniciado extends JPanel {
         add(gestionPanel, BorderLayout.SOUTH);
     }
     
+
     private void cargarDatosProfesor() {
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT p.Nombre, p.Apellidos FROM Profesores p JOIN Usuarios u ON p.UsuarioID = u.UsuarioID WHERE u.NombreUsuario = ?")) {
-            stmt.setString(1, nombreUsuario.trim());
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                String nombreCompleto = rs.getString("Nombre") + " " + rs.getString("Apellidos");
-                profesorNameLabel.setText("Bienvenido Profesor: " + nombreCompleto);
-            } else {
-                JOptionPane.showMessageDialog(this, "Usuario no encontrado");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error en la base de datos");
-        }
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT p.ProfesorID, p.Nombre, p.Apellidos FROM Profesores p JOIN Usuarios u ON p.UsuarioID = u.UsuarioID WHERE u.NombreUsuario = ?")) {
+	    stmt.setString(1, nombreUsuario.trim());
+	    ResultSet rs = stmt.executeQuery();
+	    if (rs.next()) {
+		this.profesorID = rs.getInt("ProfesorID"); // Guarda el ID
+		String nombreCompleto = rs.getString("Nombre") + " " + rs.getString("Apellidos");
+		profesorNameLabel.setText("Bienvenido Profesor: " + nombreCompleto);
+	    }
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
     }
     
     private void cargarAlumnos() {
@@ -191,38 +201,43 @@ public class ProfesorIniciado extends JPanel {
     }
     
     private void cargarCursos() {
-        cursosComboBox.removeAllItems();
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT CursoID, NombreCurso FROM Cursos ORDER BY NombreCurso")) {
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                cursosComboBox.addItem(rs.getString("NombreCurso"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al cargar cursos");
-        }
+	cursosComboBox.removeAllItems();
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT DISTINCT c.CursoID, c.NombreCurso " +
+		"FROM Cursos c " +
+		"JOIN Asignaturas a ON c.CursoID = a.CursoID " +
+		"JOIN Asignaturas_Profesores ap ON a.AsignaturaID = ap.AsignaturaID " +
+		"WHERE ap.ProfesorID = ? ORDER BY c.NombreCurso")) {
+	    stmt.setInt(1, profesorID);
+	    ResultSet rs = stmt.executeQuery();
+	    while (rs.next()) {
+		cursosComboBox.addItem(rs.getString("NombreCurso"));
+	    }
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
     }
     
     private void cargarModulos() {
-        modulosComboBox.removeAllItems();
-        String cursoSeleccionado = (String) cursosComboBox.getSelectedItem();
-        if (cursoSeleccionado == null) return;
+	modulosComboBox.removeAllItems();
+	String cursoSeleccionado = (String) cursosComboBox.getSelectedItem();
+	if (cursoSeleccionado == null) return;
 
-        try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT a.AsignaturaID, a.NombreAsignatura " +
-                "FROM Asignaturas a " +
-                "JOIN Cursos c ON a.CursoID = c.CursoID " +
-                "WHERE c.NombreCurso = ? ORDER BY a.NombreAsignatura")) {
-            stmt.setString(1, cursoSeleccionado);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                modulosComboBox.addItem(rs.getString("NombreAsignatura"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al cargar asignaturas/módulos");
-        }
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT a.AsignaturaID, a.NombreAsignatura " +
+		"FROM Asignaturas a " +
+		"JOIN Cursos c ON a.CursoID = c.CursoID " +
+		"JOIN Asignaturas_Profesores ap ON a.AsignaturaID = ap.AsignaturaID " +
+		"WHERE c.NombreCurso = ? AND ap.ProfesorID = ? ORDER BY a.NombreAsignatura")) {
+	    stmt.setString(1, cursoSeleccionado);
+	    stmt.setInt(2, profesorID);
+	    ResultSet rs = stmt.executeQuery();
+	    while (rs.next()) {
+		modulosComboBox.addItem(rs.getString("NombreAsignatura"));
+	    }
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
     }
     
     private void mostrarAlumno(int index) {
@@ -287,8 +302,15 @@ public class ProfesorIniciado extends JPanel {
             JOptionPane.showMessageDialog(this, "Error al cargar notas");
         }
     }
-    
-    private void guardarNotas() {
+    private boolean profesorAsignadoAModulo(int profesorID, int asignaturaID) throws SQLException {
+	try (PreparedStatement stmt = conn.prepareStatement(
+		"SELECT 1 FROM Asignaturas_Profesores WHERE ProfesorID = ? AND AsignaturaID = ?")) {
+	    stmt.setInt(1, profesorID);
+	    stmt.setInt(2, asignaturaID);
+	    return stmt.executeQuery().next();
+	}
+    }
+    private void guardarNotas() throws SQLException {
         if (currentAlumnoIndex < 0 || currentAlumnoIndex >= alumnos.size()) {
             JOptionPane.showMessageDialog(this, "No hay alumno seleccionado");
             return;
@@ -298,7 +320,10 @@ public class ProfesorIniciado extends JPanel {
             JOptionPane.showMessageDialog(this, "Seleccione un módulo");
             return;
         }
-        
+	if (!profesorAsignadoAModulo(profesorID, asignaturaID)) {
+	    JOptionPane.showMessageDialog(this, "No estás asignado a este módulo");
+	    return ;
+	}
         int alumnoID = alumnos.get(currentAlumnoIndex).getId();
         String modulo = (String) modulosComboBox.getSelectedItem();
         
@@ -475,36 +500,5 @@ public class ProfesorIniciado extends JPanel {
         Usuario.registrarEnFichero(nombreUsuario, "Logout de: " + nombreUsuario);
         JOptionPane.showMessageDialog(this, "Has cerrado sesión");
         cardLayout.show(mainPanel, "buttonsPanel");
-    }
-    
-    // Clase interna para representar los datos del alumno
-    private static class AlumnoPersona {
-        private final int id;
-        private final String nombre;
-        private final String apellidos;
-        private final int edad;
-        private final Date fechaMatricula;
-        private final String curso;
-        private final String ciclo;
-        
-        public AlumnoPersona(int id, String nombre, String apellidos, int edad, 
-                           Date fechaMatricula, String curso, String ciclo) {
-            this.id = id;
-            this.nombre = nombre;
-            this.apellidos = apellidos;
-            this.edad = edad;
-            this.fechaMatricula = fechaMatricula;
-            this.curso = curso;
-            this.ciclo = ciclo;
-        }
-        
-        // Getters
-        public int getId() { return id; }
-        public String getNombre() { return nombre; }
-        public String getApellidos() { return apellidos; }
-        public int getEdad() { return edad; }
-        public Date getFechaMatricula() { return fechaMatricula; }
-        public String getCurso() { return curso; }
-        public String getCiclo() { return ciclo; }
     }
 }
